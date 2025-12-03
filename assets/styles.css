@@ -1,0 +1,112 @@
+/* ====== Base tokens ====== */
+:root{
+  --max-w: 1120px;
+  --fg: #0d0d0d;
+  --muted: #666;
+  --bg: #fff;
+  --brand: #111827;
+  --card: #fff;
+  --border: #e5e7eb;
+  --radius: 14px;
+}
+
+*{ box-sizing: border-box; }
+html, body{ margin:0; padding:0; background:var(--bg); color:var(--fg);
+  font-family: system-ui, -apple-system, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+}
+a{ color: inherit; text-decoration: none; }
+img{ max-width: 100%; display: block; }
+
+.container{ max-width: var(--max-w); margin: 0 auto; padding: 0 20px; }
+
+.muted{ color: var(--muted); }
+.tag{ display:inline-block; padding:2px 8px; border:1px solid var(--border); border-radius:999px; font-size:12px; color:#333; background:#fafafa; }
+.row{ display:flex; align-items:center; gap:8px; }
+
+/* ====== Head + Toolbar ====== */
+.head{ position: relative; z-index: 5; background: var(--bg); }
+.toolbar{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin: 12px 0 16px; }
+.viewbtn{ padding:8px 12px; border:1px solid var(--border); border-radius:10px; background:var(--card); cursor:pointer; }
+.viewbtn[aria-pressed="true"]{ background: var(--brand); color:#fff; border-color: var(--brand); }
+
+/* ====== Grid & Cards (只限定清單頁) ====== */
+#list.grid,
+.gallery.grid{
+  display:grid;
+  grid-template-columns: repeat(3,1fr);
+  gap:20px;
+}
+@media(max-width:900px){
+  #list.grid, .gallery.grid{ grid-template-columns: repeat(2,1fr); }
+}
+@media(max-width:600px){
+  #list.grid, .gallery.grid{ grid-template-columns: 1fr; }
+}
+
+.card{ border:1px solid #eee; border-radius: var(--radius); overflow:hidden; background: var(--card); display:flex; flex-direction:column; }
+.card .thumb{ display:block; background:#f9f9f9; aspect-ratio:1/1; background-size:cover; background-position:center; }
+.card .meta{ padding:12px; display:flex; flex-direction:column; gap:6px; }
+.card .title{ font-weight:600; color:var(--fg); font-size:1rem; }
+.card .date{ font-size:.85rem; }
+.card .tags{ display:flex; flex-wrap:wrap; gap:4px; }
+
+/* ====== Pager ====== */
+.pager{ display:flex; justify-content:center; align-items:center; gap:12px; margin:20px 0; }
+.pager button{ padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--card); cursor:pointer; }
+.pager button:hover{ background:#f0f0f0; }
+
+/* ====== Empty ====== */
+.empty{ text-align:center; color:var(--muted); padding:40px 0; }
+
+/* ====== Header, Logo, Search ====== */
+header{ position:sticky; top:0; z-index:10; backdrop-filter:saturate(180%) blur(10px); background:rgba(255,255,255,.85); border-bottom:1px solid #eee; }
+header .container.nav{ display:flex; align-items:center; justify-content:space-between; height:64px; }
+header .logo{ display:flex; align-items:center; gap:8px; font-weight:700; }
+
+/* Logo 大小統一：清單頁與詳情頁相同 */
+header .logo img {
+  max-height: 56px;
+  height: auto;
+  width: auto;
+  object-fit: contain;
+}
+
+/* 搜尋框樣式 */
+header .searchbar{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:nowrap;
+}
+header .searchbar input[type="search"],
+header .searchbar select,
+header .searchbar button{
+  height:36px;
+  line-height:36px;
+  font-size:14px;
+  border:1px solid var(--border);
+  border-radius:10px;
+}
+header .searchbar input[type="search"]{
+  padding:0 12px;
+  min-width:220px;
+  background:#fff;
+}
+header .searchbar select{ padding:0 10px; background:#fff; }
+header .searchbar button{
+  padding:0 12px;
+  background:var(--brand);
+  color:#fff;
+  border-color:var(--brand);
+  cursor:pointer;
+}
+header .searchbar button:hover{ filter:brightness(1.05); }
+
+/* 小螢幕自動換行到 Logo 下方 */
+@media (max-width:600px){
+  header .container.nav{ flex-wrap:wrap; height:auto; }
+  header .searchbar{ order:2; width:100%; margin-top:8px; }
+  header .searchbar input[type="search"]{ flex:1; min-width:0; }
+}

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+
+<html lang="zh-Hant">
+<head>
+<meta content="#0f172a" name="theme-color"/>
+<meta charset="utf-8"/>
+<title>作品讀取中...</title>
+<link href="logo.png" rel="icon" type="image/png"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<!-- 新增 favicon -->
+<link rel="icon" href="https://res.cloudinary.com/dijzndzw2/image/upload/v1757176751/logo-3_hddq08.png" type="image/png"/>
+<style>
+    :root { --max-w: 1120px; --fg:#0d0d0d; --muted:#666; --bg:#fff; --brand:#111827; --radius: 14px; }
+    *{ box-sizing:border-box }
+    html, body { margin:0; padding:0; font-family: 'Noto Sans TC', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color: var(--fg); background: var(--bg); }
+    a { color: inherit; text-decoration: none }
+    img { max-width: 100%; display:block; height:auto }
+    .container { max-width: var(--max-w); margin: 0 auto; padding: 0 20px; }
+    header { position: sticky; top:0; z-index:10; backdrop-filter: saturate(180%) blur(10px); background: rgba(255,255,255,.85); border-bottom:1px solid #eee; }
+    .nav { display:flex; align-items:center; justify-content:space-between; height:64px; }
+    .logo { display:flex; align-items:center; gap:10px; font-weight:800 }
+    .logo img { height:40px; width:auto; max-height:40px; max-width:none; object-fit:contain; border-radius:6px }
+    main { padding:28px 0 60px }
+    .title { font-size: clamp(22px, 4vw, 36px); margin: 8px 0 8px; font-weight:800 }
+    .muted { color:var(--muted); font-size:14px }
+    .tags { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px }
+    .tag { font-size:12px; padding:4px 8px; border-radius:999px; background:#f3f4f6; border:1px solid #eee }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px }
+    .btn { padding:10px 14px; border-radius:10px; background:var(--brand); color:#fff; font-weight:700; border:0 }
+    .ghost { padding:10px 14px; border-radius:10px; border:1px solid #ddd; background:#fff }
+    .desc { margin-top:14px; line-height:1.7; color:#333 }
+    .grid { display:grid; grid-template-columns: repeat(12, 1fr); gap:20px; margin-top:24px }
+    .card { grid-column: span 12; border:1px solid #eee; border-radius: var(--radius); overflow:hidden; background:#fff; }
+    .cap { padding:10px 12px; font-size:14px; color:#444; border-top:1px solid #f0f0f0 }
+    .meta { display:flex; align-items:center; gap:8px; color:#777; font-size:14px }
+    @media (min-width: 900px){ .card{ grid-column: span 6 } }
+  </style>
+<link href="assets/styles.css" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+/* Auto-injected: toggle date visibility via URL param */
+.work-date{display:none;}
+.show-dates .work-date{display:inline;}
+</style><style>
+/* Auto-injected v2: robust toggle for date visibility */
+.work-date{display:none !important;}
+.show-dates .work-date{display:inline !important;}
+/* Also hide generic <time> with datetime if not explicitly opted-in */
+time[datetime].work-date{display:none !important;}
+.show-dates time[datetime].work-date{display:inline !important;}
+</style></head>
+<body>
+<header>
+<meta content="#0f172a" name="theme-color"/>
+<div class="container nav">
+<div class="logo" href="index.html">
+<img alt="logo" src="logo.png"/>
+</div>
+<a class="ghost" href="gallery.html">回到清單</a>
+</div>
+</header>
+<main class="container" id="main">
+<h1 class="title" id="title">載入中…</h1>
+<div class="meta"><span id="date"></span><span class="muted" id="slug"></span></div>
+<div class="tags" id="tags"></div>
+<div class="desc" id="desc"></div>
+<div class="actions">
+<a class="ghost" href="#" id="zip">下載 ZIP</a>
+<a class="ghost" href="#" id="share" rel="noopener" target="_blank">連結分享</a>
+</div>
+<section class="grid" id="images"></section>
+</main>
+<script>
+function setText(id, text){ var el = qsel(id); if (el) el.textContent = text; }
+function setHTML(id, html){ var el = qsel(id); if (el) el.innerHTML = html; }
+function clearHTML(id){ var el = qsel(id); if (el) el.innerHTML = ''; }
+
+// Utilities
+function qsel(id){ return document.getElementById(id); }
+function getSlug(){ return (new URL(location.href)).searchParams.get('slug') || ''; }
+
+// Lightbox
+let LB_IMAGES = []; let LB_INDEX = 0;
+function initLightbox(images){
+  LB_IMAGES = Array.isArray(images) ? images.slice() : [];
+  const overlay = qsel('lightbox-overlay');
+  const img = qsel('lb-img');
+  const cap = qsel('lb-cap');
+  const count = qsel('lb-count');
+  const closeBtn = qsel('lb-close');
+  const prevBtn = qsel('lb-prev');
+  const nextBtn = qsel('lb-next');
+
+  function update(){
+    const it = LB_IMAGES[LB_INDEX] || {};
+    img.src = it.url || '';
+    img.alt = it.alt || '';
+    cap.textContent = it.caption || it.alt || '';
+    count.textContent = (LB_INDEX+1) + ' / ' + LB_IMAGES.length;
+  }
+  window.openLightbox = function(i){
+    if (!LB_IMAGES.length) return;
+    LB_INDEX = Math.max(0, Math.min(i|0, LB_IMAGES.length-1));
+    update();
+    overlay.style.display = 'flex';
+  };
+  function close(){ overlay.style.display = 'none'; }
+  function prev(){ if (LB_IMAGES.length){ LB_INDEX = (LB_INDEX - 1 + LB_IMAGES.length) % LB_IMAGES.length; update(); } }
+  function next(){ if (LB_IMAGES.length){ LB_INDEX = (LB_INDEX + 1) % LB_IMAGES.length; update(); } }
+
+  if (closeBtn) closeBtn.onclick = close;
+  if (prevBtn) prevBtn.onclick = prev;
+  if (nextBtn) nextBtn.onclick = next;
+  overlay.addEventListener('click', function(e){
+    const dialog = qsel('lb-dialog');
+    if (e.target === overlay || (dialog && !dialog.contains(e.target))) close();
+  });
+  document.addEventListener('keydown', function(e){
+    if (overlay.style.display === 'flex'){
+      if (e.key === 'Escape') close();
+      if (e.key === 'ArrowLeft') prev();
+      if (e.key === 'ArrowRight') next();
+    }
+  });
+}
+
+// Render
+function render(slug, data){
+  // meta
+  document.title = (data.title ? data.title + '｜' : '') + '作品詳情';
+  if (qsel('title')) setText('title', data.title || slug);
+  if (qsel('slug')) setText('slug', ' / ' + slug);
+  const d = new Date(data.date || data.created_at || Date.now());
+  if (qsel('date')) setText('date', d.toLocaleDateString('zh-TW'));
+
+  // description
+  const descEl = qsel('desc');
+  if (descEl){
+    const text = (data.desc || '').toString().trim();
+    if (text){
+      descEl.textContent = text;
+      descEl.style.display = '';
+    } else {
+      descEl.style.display = 'none';
+    }
+  }
+
+  // tags
+  const tagsWrap = qsel('tags'); if (tagsWrap) tagsWrap.innerHTML = '';
+  const tagsArr = Array.isArray(data.tags) ? data.tags
+                : (data.tags ? String(data.tags).split(/[, \s]+/).map(s=>s.trim()).filter(Boolean) : []);
+  for (const t of tagsArr){
+    const el = document.createElement('span'); el.className = 'tag'; el.textContent = t;
+    tagsWrap && tagsWrap.appendChild(el);
+  }
+
+  // images
+  const images = Array.isArray(data.items) ? data.items : (data.items ? [data.items] : []);
+  const normalized = images.map(x => ({
+    url: x.url || x.src || '',
+    alt: x.alt || x.caption || '',
+    caption: x.caption || ''
+  })).filter(x => x.url);
+
+  initLightbox(normalized);
+
+  const first = qsel('share');
+if (first){
+  first.textContent = '連結分享';
+  first.href = '#';
+  first.removeAttribute('target'); first.removeAttribute('rel');
+  const onShare = async function(e){
+    e.preventDefault(); e.stopImmediatePropagation();
+    const shareUrl = location.href;
+    const title = (qsel('title') && qsel('title').textContent) || document.title || '分享';
+    try{
+      if (navigator.share){ await navigator.share({ title, url: shareUrl }); }
+      else if (navigator.clipboard && navigator.clipboard.writeText){ await navigator.clipboard.writeText(shareUrl); alert('已複製分享連結'); }
+      else { prompt('複製此連結：', shareUrl); }
+    }catch(_){}
+  };
+  const clone = first.cloneNode(true);
+  first.parentNode.replaceChild(clone, first);
+  clone.addEventListener('click', onShare, true);
+}
+
+  const grid = qsel('images'); if (grid) grid.innerHTML = '';
+  for (let i = 0; i < normalized.length; i++){
+    const it = normalized[i];
+    const card = document.createElement('article'); card.className = 'card';
+    const link = document.createElement('a'); link.href = it.url; link.addEventListener('click', function(e){ e.preventDefault(); openLightbox(i); });
+    const img = document.createElement('img'); img.loading = 'lazy'; img.alt = it.alt || ''; img.src = it.url;
+    link.appendChild(img); card.appendChild(link);
+    const cap = document.createElement('div'); cap.className = 'cap'; cap.textContent = it.caption || it.alt || '';
+    card.appendChild(cap);
+    if (grid) grid.appendChild(card);
+  }
+
+  // zip link
+  try{
+    var z = qsel('zip');
+    if (z) {
+      z.href = `/.netlify/functions/zip-images?slug=${encodeURIComponent(slug)}`;
+      z.setAttribute('download','');
+      z.onclick = null;
+      z.removeAttribute('target'); z.removeAttribute('rel');
+    }
+  }catch(_){}
+}
+
+// Load
+async function load(){
+  const slug = getSlug();
+  try{
+    const res = await fetch(`/.netlify/functions/get-post?slug=${encodeURIComponent(slug)}`);
+    if (!res.ok) throw new Error('載入作品失敗');
+    const data = await res.json();
+    render(slug, data);
+  }catch(e){
+    if (qsel('title')) setText('title', e.message || e);
+  }
+}
+
+load();
+
+</script>
+<div id="lightbox-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:1000;">
+<button aria-label="關閉" id="lb-close" style="position:absolute;top:8px;right:8px;padding:12px 14px;border:1px solid #666;background:#111;color:#fff;border-radius:12px;cursor:pointer;font-weight:800;font-size:16px;z-index:1001">✕</button>
+<div id="lb-dialog" style="position:relative;max-width:94vw;max-height:92vh;display:flex;flex-direction:column;align-items:center;">
+<figure style="max-width:94vw;max-height:84vh;margin:0;text-align:center">
+<img alt="" id="lb-img" style="max-width:94vw;max-height:72vh;border-radius:12px;display:block;margin:0 auto"/>
+<figcaption id="lb-cap" style="color:#ddd;font-size:16px;margin-top:10px"></figcaption>
+<div id="lb-count" style="color:#bbb;font-size:13px;margin-top:4px"></div>
+</figure>
+<div id="lb-bar" style="margin-top:10px;gap:12px">
+<button aria-label="上一張" id="lb-prev" style="padding:12px 16px;border:1px solid #666;background:#111;color:#fff;border-radius:12px;cursor:pointer;font-weight:800;font-size:18px">⟨ 上一張</button>
+<button aria-label="下一張" id="lb-next" style="padding:12px 16px;border:1px solid #666;background:#111;color:#fff;border-radius:12px;cursor:pointer;font-weight:800;font-size:18px">下一張 ⟩</button>
+</div>
+</div>
+</div><script>
+/* Auto-injected: add .show-dates on ?showDates=1 */
+(function(){
+  try{
+    var params = new URLSearchParams(location.search);
+    if (params.get('showDates') === '1') {
+      document.body && document.body.classList.add('show-dates');
+    }
+  }catch(e){}
+})();
+</script><script>
+/* Auto-injected v2: robust date toggling and runtime classification */
+(function(){
+  try{
+    var params = new URLSearchParams(location.search);
+    if (params.get('showDates') === '1') {
+      document.body && document.body.classList.add('show-dates');
+    }
+  }catch(e){}
+
+  function isTextNode(n){ return n && n.nodeType === Node.TEXT_NODE; }
+
+  var dateRe = /\b(20\d{2}|19\d{2})([-\/.])(0?[1-9]|1[0-2])\2(0?[1-9]|[12]\d|3[01])\b/;
+
+  function shouldSkip(el){
+    if(!el) return true;
+    var name = (el.nodeName||'').toLowerCase();
+    if (['script','style','noscript','code','pre'].indexOf(name) >= 0) return true;
+    return false;
+  }
+
+  function wrapTextNode(node){
+    var text = node.nodeValue;
+    var m = dateRe.exec(text);
+    if(!m) return false;
+    var y=m[1], sep=m[2], mm=m[3], dd=m[4];
+    var start = m.index;
+    var end = start + m[0].length;
+    var before = text.slice(0, start);
+    var match = text.slice(start, end);
+    var after = text.slice(end);
+
+    var span = document.createElement('time');
+    span.className = 'work-date';
+    var to2 = function(n){ n = parseInt(n,10); return (n<10?'0':'')+n; };
+    span.setAttribute('datetime', y+'-'+to2(mm)+'-'+to2(dd));
+    span.textContent = match;
+
+    var frag = document.createDocumentFragment();
+    if(before) frag.appendChild(document.createTextNode(before));
+    frag.appendChild(span);
+    if(after) frag.appendChild(document.createTextNode(after));
+
+    node.parentNode.replaceChild(frag, node);
+    return true;
+  }
+
+  function markKnownDateElems(){
+    var selectors = ['.date', '.post-date', '.work .date', '[data-date]', '[itemprop="datePublished"]', 'time[datetime]'];
+    try {
+      document.querySelectorAll(selectors.join(',')).forEach(function(el){
+        if(!el.classList.contains('work-date')) el.classList.add('work-date');
+      });
+    } catch(e){}
+  }
+
+  function scanAndWrap(root){
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: function(node){
+        var p = node.parentNode;
+        if(!p || shouldSkip(p)) return NodeFilter.FILTER_REJECT;
+        if((p.closest && p.closest('.work-date')) || (p.nodeName||'').toLowerCase() === 'time') return NodeFilter.FILTER_REJECT;
+        return dateRe.test(node.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      }
+    });
+    var nodes = [];
+    var n;
+    while((n = walker.nextNode())) nodes.push(n);
+    nodes.forEach(wrapTextNode);
+  }
+
+  function init(){
+    if(document.body && !document.body.classList.contains('show-dates')){
+      // hide scenario
+      markKnownDateElems();
+      scanAndWrap(document.body);
+    }
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  // Also observe dynamic inserts
+  try{
+    var mo = new MutationObserver(function(muts){
+      if(!document.body || document.body.classList.contains('show-dates')) return;
+      muts.forEach(function(m){
+        m.addedNodes && m.addedNodes.forEach(function(node){
+          if(node.nodeType === 1){ // element
+            markKnownDateElems();
+            scanAndWrap(node);
+          } else if(node.nodeType === 3){ // text
+            wrapTextNode(node);
+          }
+        });
+      });
+    });
+    mo.observe(document.documentElement, {childList:true, subtree:true});
+  }catch(e){}
+})();
+
+/* Hash-based share page support: show dates on "#/v/<id>" */
+function checkHashForShare(){
+  try{
+    var h = location.hash || '';
+    if (/^#\/v\/\d+/.test(h)) {
+      document.body && document.body.classList.add('show-dates');
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+checkHashForShare();
+window.addEventListener('hashchange', checkHashForShare, false);
+</script></body>
+</html>

@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#0f172a"/>
+<title>清洗前後拼貼照片分享</title>
+<link rel="icon" type="image/png" href="logo.png"/>
+<meta name="description" content="上傳清洗前後拼貼照片，加入說明、拖曳排序，並一鍵產生分享連結與 ZIP 下載。">
+<!-- ✅ 新增 favicon -->
+<link rel="apple-touch-icon" sizes="180x180" href="https://res.cloudinary.com/dijzndzw2/image/upload/c_scale,w_180/v1757176751/logo-3_hddq08.png"/>
+<link rel="shortcut icon" href="https://res.cloudinary.com/dijzndzw2/image/upload/v1757176751/logo-3_hddq08.png"/>
+<!-- ✅ favicon 結束 -->
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+
+<style>
+  :root { color-scheme: light dark; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; padding:0.75rem 1rem; border-radius:1rem; border:1px solid rgba(100,116,139,.5); font-weight:600; }
+  .btn-primary { background:#0f172a; color:#fff; border-color:transparent; box-shadow:0 10px 24px rgba(15,23,42,.15); }
+  .btn-ghost { background:rgba(255,255,255,.6); border-color:rgba(148,163,184,.5); }
+  .input { width:100%; border-radius:0.75rem; border:1px solid rgba(100,116,139,.6); padding:0.75rem 1rem; background:rgba(255,255,255,.75); }
+  .card { border:1px solid rgba(100,116,139,.3); background:rgba(255,255,255,.75); border-radius:1.25rem; box-shadow:0 6px 24px rgba(15,23,42,.06); }
+  .row { display:flex; gap:12px; align-items:center; padding:12px; border:1px dashed rgba(100,116,139,.35); border-radius:1rem; background:rgba(255,255,255,.6); position:relative; }
+  .handle { cursor:grab; padding:6px 8px; border-radius:10px; background:#e2e8f0; color:#334155; user-select:none; touch-action:none; }
+  .thumb { width:80px; height:80px; border-radius:12px; overflow:hidden; background:#e2e8f0; flex:none; display:flex; align-items:center; justify-content:center; font-size:12px; color:#64748b; }
+  .progress { height:8px; background:rgba(148,163,184,.35); border-radius:9999px; overflow:hidden; }
+  .bar { height:100%; width:0; background:#0f172a; transition:width .25s ease; }
+  .chip { font-size:12px; padding:4px 10px; border-radius:9999px; background:#f1f5f9; color:#334155; }
+
+  /* Lightbox */
+  .lightbox { position:fixed; inset:0; background:rgba(0,0,0,.9); display:none; align-items:center; justify-content:center; z-index:60; padding:env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 72px); }
+  .lightbox.open { display:flex; }
+  .lightbox img { max-width:92vw; max-height:72vh; border-radius:16px; }
+  .lightbox .caption { color:#e2e8f0; margin-top:12px; text-align:center; font-size:18px; line-height:1.5; }
+  .lightbox .close { position:absolute; top:16px; right:16px; color:#e2e8f0; font-size:26px; }
+  .lb-controls { position:absolute; left:0; right:0; bottom:16px; display:flex; align-items:center; justify-content:center; gap:16px; pointer-events:none; }
+  .lb-controls .navBtn { pointer-events:auto; font-size:20px; color:#fff; width:56px; height:56px; display:flex; align-items:center; justify-content:center; border-radius:9999px; background:rgba(17,24,39,.6); border:1px solid rgba(255,255,255,.2); backdrop-filter: blur(6px); }
+</style>
+<style>
+  @media (prefers-reduced-motion: reduce){
+    * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  }
+</style>
+
+<!-- 日期隱藏/顯示（沿用你現有機制） -->
+<style>.work-date{display:none !important;}.show-dates .work-date{display:inline !important;}time[datetime].work-date{display:none !important;}.show-dates time[datetime].work-date{display:inline !important;}</style>
+</head>
+
+<body class="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 text-slate-900">
+<header class="sticky top-0 z-30 backdrop-blur bg-white/80 border-b border-slate-200/60">
+  <div class="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+    <img src="logo2.png" alt="logo2" class="h-16 w-16 rounded-xl object-contain" decoding="async" loading="lazy"/>
+    <div class="leading-tight">
+      <div class="font-semibold">自然大叔 Natural Uncle</div>
+      <div class="text-[12px] text-slate-500">清洗前後拼貼照片分享</div>
+    </div>
+
+    <!-- ▶︎▶︎ 管理員登入面板（新增） ◀︎◀︎ -->
+    <div class="ml-auto flex items-center gap-2" id="admin-panel">
+      <div id="admin-logged-out" class="flex items-center gap-2">
+        <input id="admin-pass" type="password" class="input w-36" placeholder="管理密碼"/>
+        <button id="admin-login-btn" type="button" class="btn btn-ghost">登入</button>
+      </div>
+      <div id="admin-logged-in" class="hidden items-center gap-2">
+        <span class="text-sm px-2 py-1 rounded bg-green-100 text-green-700">已登入</span>
+        <button id="admin-logout-btn" type="button" class="btn btn-ghost">登出</button>
+      </div>
+    </div>
+    <!-- 管理員登入面板 End -->
+  </div>
+</header>
+
+<main class="max-w-3xl mx-auto px-4 py-6">
+  <section id="editor" class="card p-5">
+    <h1 class="text-xl font-bold mb-4">建立分享</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div><label class="block text-sm mb-1 text-slate-600">案件/地點</label><input id="title" class="input" placeholder="例如：台北王小姐"/></div>
+      <div><label class="block text-sm mb-1 text-slate-600">服務日期</label><input id="date" type="date" class="input"/></div>
+    </div>
+
+    <div class="mt-4">
+      <label class="block text-sm mb-1 text-slate-600">案件說明（選填）</label>
+      <textarea id="desc" class="input" rows="4" placeholder="例：頂樓水塔多年未清洗，本次重點是除泥沙與消毒…"></textarea>
+    </div>
+
+    <div class="mt-4">
+      <label class="block text-sm mb-2 text-slate-600">照片清單（可拖曳排序）</label>
+      <div id="items" class="space-y-3"></div>
+      <div class="flex flex-wrap gap-2 mt-2">
+        <button id="addItem" class="btn btn-ghost tap">＋ 新增一張</button>
+        <label class="btn btn-ghost tap cursor-pointer">
+          相簿選取多張
+          <input id="multiPick" type="file" multiple accept="image/*" class="hidden"/>
+        </label>
+      </div>
+      <p class="text-xs text-slate-500 mt-2">支援 JPG/PNG，單檔 ≤ 10MB。拖曳左側「⋮⋮」手把調整順序。</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+      <div><label class="block text-sm mb-1 text-slate-600">標籤（選填）</label><input id="tags" class="input" placeholder="以逗號分隔，例如：冷氣, 住家"/></div>
+      <div><label class="block text-sm mb-1 text-slate-600">自訂網址代稱（選填）</label><input id="slug" class="input" placeholder="例如：wang-2025-09"/></div>
+    </div>
+
+    <div class="mt-5 flex items-center gap-3">
+      <button id="upload" class="btn btn-primary tap">上傳全部並產生連結</button>
+      <div class="grow progress"><div id="bar" class="bar"></div></div>
+      <span id="progress" class="text-sm text-slate-600 min-w-[5rem]"></span>
+    </div>
+  </section>
+
+  <section id="viewer" class="hidden">
+    <article class="card overflow-hidden">
+      <div class="p-5 border-b border-slate-200/60">
+        <div class="flex items-start gap-3">
+          <div class="grow">
+            <h2 id="v-title" class="text-xl md:text-2xl font-semibold"></h2>
+            <p class="text-sm text-slate-600 mt-1"><span id="v-date"></span></p>
+            <div id="v-tags" class="flex flex-wrap gap-2 mt-2"></div>
+          </div>
+          <a id="downloadZip" class="btn btn-ghost tap" target="_blank" rel="noopener">下載全部（ZIP）</a>
+        </div>
+      </div>
+      <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4"></div>
+
+      <div id="share-link" class="hidden px-5 pb-4">
+        <div class="card p-4 flex flex-col md:flex-row md:items-center gap-3">
+          <input id="share-url" class="input md:flex-1" readonly />
+          <button id="copy-link" class="btn btn-primary tap md:w-auto w-full">複製連結</button>
+        </div>
+      </div>
+
+      <div class="p-5 border-t border-slate-200/60 text-center">
+        <img src="logo.png" alt="公司Logo" class="mx-auto mb-3 max-h-16" decoding="async" loading="lazy"/>
+        <p class="text-sm font-semibold">自然大叔 Natural Uncle 專業清淨職人</p>
+        <p class="text-sm mt-1">聯絡電話：<a href="tel:0912356331" class="text-blue-600">0912-356-331</a></p>
+      </div>
+    </article>
+  </section>
+</main>
+
+<!-- Copy link toast -->
+<div class="fixed inset-x-0 bottom-5 z-50 flex justify-center pointer-events-none">
+  <div
+    id="copy-toast"
+    class="pointer-events-auto max-w-xs rounded-full bg-slate-900/95 text-slate-50 text-sm px-4 py-2
+           shadow-lg border border-slate-700/60 flex items-center gap-2
+           opacity-0 translate-y-3 transition ease-out duration-200"
+  >
+    <span>已複製連結！</span>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="圖片放大檢視">
+  <button class="close" aria-label="關閉">✕</button>
+  <div class="content text-center">
+    <img id="lb-img" alt="放大圖片" decoding="async" loading="lazy"/>
+    <div id="lb-cap" class="caption"></div>
+  </div>
+  <div class="lb-controls">
+    <button class="navBtn navPrev" aria-label="上一張">❮</button>
+    <button class="navBtn navNext" aria-label="下一張">❯</button>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const CLOUD_NAME="dvz4druzc";
+    const UPLOAD_PRESET="uncle-collage";
+    const MAX_MB=10;
+
+    const $=(s,r=document)=>r.querySelector(s);
+    const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+    const setProgress=m=>$('#progress').textContent=m||'';
+    const setBar=p=>$('#bar').style.width=Math.max(0,Math.min(100,p))+'%';
+    const slugify=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+    function showCopyToast(msg = '已複製連結！') {
+      const el = $('#copy-toast');
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.remove('opacity-0', 'translate-y-3');
+      el.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(el._hideTimer);
+      el._hideTimer = setTimeout(() => {
+        el.classList.remove('opacity-100', 'translate-y-0');
+        el.classList.add('opacity-0', 'translate-y-3');
+      }, 2000);
+    }
+
+
+    /* ===== 圖片 URL 轉換 ===== */
+    function transform(url, opts){
+      if(!url) return url;
+      const i=url.indexOf('/upload/');
+      if(i<0) return url;
+      const inject = opts || 'f_auto,q_auto';
+      return url.slice(0,i+8)+inject+'/'+url.slice(i+8);
+    }
+    const galleryUrl = (u)=> transform(u, 'f_auto,q_auto,c_limit,w_900');
+    const lightboxUrl = (u)=> transform(u, 'f_auto,q_auto,c_limit,w_1600');
+
+    /* ====== 管理員登入工具（新增） ====== */
+    const TOKEN_KEY = 'adminToken'; // 與 gallery 使用相同 key
+    function getToken(){ try{ return localStorage.getItem(TOKEN_KEY) || ''; }catch{ return ''; } }
+    function setToken(t){ try{ if(t) localStorage.setItem(TOKEN_KEY,t); }catch{} }
+    function clearToken(){ try{ localStorage.removeItem(TOKEN_KEY); }catch{} }
+    function isLoggedIn(){ return !!getToken(); }
+
+    function refreshAdminUI(){
+      const out = $('#admin-logged-out');
+      const inn = $('#admin-logged-in');
+      if (isLoggedIn()){ out.classList.add('hidden'); inn.classList.remove('hidden'); }
+      else { inn.classList.add('hidden'); out.classList.remove('hidden'); }
+    }
+
+    async function adminLogin(){
+      const pw = $('#admin-pass').value.trim();
+      if(!pw){ alert('請輸入管理密碼'); return; }
+      const r = await fetch('/.netlify/functions/admin-login',{
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password: pw })
+      });
+      const data = await r.json().catch(()=>({}));
+      if(!r.ok || !data.token){ alert(data.error || '登入失敗'); return; }
+      setToken(data.token);
+      $('#admin-pass').value = '';
+      refreshAdminUI();
+    }
+    function adminLogout(){ clearToken(); refreshAdminUI(); }
+
+    // 綁定登入面板
+    $('#admin-login-btn')?.addEventListener('click', adminLogin);
+    $('#admin-logout-btn')?.addEventListener('click', adminLogout);
+    refreshAdminUI();
+
+    /* ====== 編輯列邏輯 ====== */
+    function initRowControls(row){
+      const floorSel = row.querySelector('.floor-select');
+      const floorCustom = row.querySelector('.floor-custom');
+      const placeSel = row.querySelector('.place-select');
+      const placeCustom = row.querySelector('.place-custom');
+      const typeSel = row.querySelector('.type-select');
+      const typeCustom = row.querySelector('.type-custom');
+      function toggle(sel, custom, trigger){
+        if(sel.value === trigger){ custom.classList.remove('hidden'); custom.focus(); }
+        else { custom.classList.add('hidden'); custom.value = ''; }
+      }
+      floorSel.addEventListener('change', ()=>toggle(floorSel, floorCustom, 'custom-floor'));
+      placeSel.addEventListener('change', ()=>toggle(placeSel, placeCustom, 'custom-place'));
+      typeSel.addEventListener('change', ()=>toggle(typeSel, typeCustom, 'custom-type'));
+    }
+
+    function getRowCaption(row, sep='-'){
+      const floorSel = row.querySelector('.floor-select');
+      const floorCustom = row.querySelector('.floor-custom');
+      const placeSel = row.querySelector('.place-select');
+      const placeCustom = row.querySelector('.place-custom');
+      const typeSel = row.querySelector('.type-select');
+      const typeCustom = row.querySelector('.type-custom');
+      const floor = (floorSel.value === 'custom-floor' ? (floorCustom.value||'') : (floorSel.value||'')).trim();
+      const place = (placeSel.value === 'custom-place' ? (placeCustom.value||'') : (placeSel.value||'')).trim();
+      const ctype = (typeSel.value === 'custom-type' ? (typeCustom.value||'') : (typeSel.value||'')).trim();
+      const parts = []; if(floor) parts.push(floor); if(place) parts.push(place); if(ctype) parts.push(ctype);
+      return parts.join(sep);
+    }
+
+    function addItemRow(file){
+      const itemsBox = $('#items');
+      const row=document.createElement('div');
+      row.className='row';
+      row.innerHTML=`
+        <div class="handle" title="拖曳調整順序">⋮⋮</div>
+        <div class="thumb">預覽</div>
+        <div class="flex-1">
+          <div class="grid gap-2">
+            <input type="file" accept="image/*" class="input p-2" aria-label="選擇圖片" />
+            <div class="grid md:grid-cols-3 gap-2">
+              <div>
+                <label class="block text-xs mb-1 text-slate-600">樓層</label>
+                <select class="input floor-select">
+                  <option value="" disabled selected>請選擇樓層</option>
+                  <option>1F</option><option>2F</option><option>3F</option><option>4F</option><option>5F</option>
+                  <option value="custom-floor">5F以上（手動輸入）</option>
+                </select>
+                <input class="input mt-1 floor-custom hidden" placeholder="請輸入樓層（例如：6F、7F…）"/>
+              </div>
+              <div>
+                <label class="block text-xs mb-1 text-slate-600">所在類型</label>
+                <select class="input place-select">
+                  <option value="" disabled selected>請選擇所在類型</option>
+                  <option>客廳</option><option>房間</option><option>廚房</option>
+                  <option value="custom-place">其他（手動輸入）</option>
+                </select>
+                <input class="input mt-1 place-custom hidden" placeholder="請輸入所在類型"/>
+              </div>
+              <div>
+                <label class="block text-xs mb-1 text-slate-600">清洗類別</label>
+                <select class="input type-select">
+                  <option value="" disabled selected>請選擇清洗類別</option>
+                  <option>分離式冷氣室內機</option><option>吊隱式冷氣室內機</option>
+                  <option>直立式洗衣機</option><option>水塔</option>
+                  <option value="custom-type">其他（手動輸入）</option>
+                </select>
+                <input class="input mt-1 type-custom hidden" placeholder="請輸入清洗類別"/>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-ghost tap remove">刪除</button>`;
+      itemsBox.appendChild(row);
+
+      const fileInput=row.querySelector('input[type=file]');
+      const thumb=row.querySelector('.thumb');
+      initRowControls(row);
+
+      function setPreviewFromFile(f){
+        const fr=new FileReader();
+        fr.onload=()=>{ thumb.innerHTML='<img decoding="async" loading="lazy" alt="預覽" class="w-full h-full object-cover" src="'+fr.result+'"/>'; };
+        fr.readAsDataURL(f);
+      }
+      row.querySelector('.remove').addEventListener('click',()=>row.remove());
+      fileInput.addEventListener('change',()=>{
+        const f=fileInput.files[0]; if(!f) return;
+        if(f.size>MAX_MB*1024*1024){ alert('圖片超過 '+MAX_MB+'MB'); fileInput.value=''; return; }
+        row._file = f; setPreviewFromFile(f);
+      });
+
+      if (file) {
+        try { const dt=new DataTransfer(); dt.items.add(file); fileInput.files=dt.files; fileInput.dispatchEvent(new Event('change')); }
+        catch { row._file=file; setPreviewFromFile(file); }
+      }
+    }
+
+    $('#addItem').addEventListener('click',()=> addItemRow());
+    $('#multiPick').addEventListener('change',e=>{
+      const files=Array.from(e.target.files||[]); files.forEach(f=> addItemRow(f)); e.target.value='';
+    });
+    addItemRow();
+
+    if (window.Sortable) {
+      new Sortable($('#items'),{ animation:150, handle:'.handle',
+        onStart:e=>e.item.classList.add('opacity-70'),
+        onEnd:  e=>e.item.classList.remove('opacity-70')
+      });
+    }
+
+    async function uploadToCloudinary(file,folder){
+      const fd=new FormData();
+      fd.append('file',file);
+      fd.append('upload_preset',UPLOAD_PRESET);
+      fd.append('folder',folder);
+      const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,{method:'POST',body:fd});
+      const j=await res.json().catch(()=>({}));
+      if(!res.ok||!j.secure_url) throw new Error(j.error?.message||'Cloudinary upload failed');
+      return j.secure_url;
+    }
+
+    // 送出建立分享
+    $('#upload').addEventListener('click', async ()=>{
+      // ✅ 需要先登入（新增）
+      const token = getToken();
+      if (!token){ alert('請先登入管理員再建立分享'); return; }
+
+      const title=$('#title').value.trim();
+      const date=$('#date').value;
+      const desc=$('#desc').value.trim();
+      const tags=$('#tags').value.trim();
+      let slug=$('#slug').value.trim();
+      const rows=$$('#items>.row');
+      if(!rows.length) return alert('請至少新增一張');
+      if(!slug) slug=slugify((title||'case')+'-'+Date.now().toString().slice(-6));
+
+      try{
+        setBar(0); setProgress('準備上傳…');
+        const folder=`collages/${slug}`;
+        const items=[]; let done=0;
+
+        for (const row of rows){
+          const f = row.querySelector('input[type=file]')?.files?.[0] || row._file;
+          const caption = getRowCaption(row);
+          if(!f){ alert('有一列未選圖片'); return; }
+          if(f.size>MAX_MB*1024*1024){ alert('有圖片超過 '+MAX_MB+'MB'); return; }
+          setProgress(`上傳中… ${done+1} / ${rows.length}`);
+          const url = await uploadToCloudinary(f, folder);
+          items.push({ url, caption });
+          done++; setBar(done/rows.length*100);
+        }
+
+        setProgress('儲存資料…');
+        const resp = await fetch('/.netlify/functions/create-post',{
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json',
+            // 🔐 帶上管理員 JWT（新增）
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ title, date, desc, tags, slug, items })
+        });
+        const txt = await resp.text();
+        let data; try{ data = JSON.parse(txt); }catch{ data = { error: txt }; }
+        if(!resp.ok || !data.ok) throw new Error(data.error || '建立失敗');
+
+        const shareUrl = location.origin + location.pathname + '#/v/' + encodeURIComponent(data.slug);
+        $('#share-url').value = shareUrl;
+        $('#share-link').classList.remove('hidden');
+        $('#copy-link').onclick = () =>
+          navigator.clipboard.writeText(shareUrl)
+            .then(() => showCopyToast())
+            .catch(() => showCopyToast('複製失敗，請手動長按網址複製'));
+        sessionStorage.setItem('justCreated','1');
+
+        location.hash = '#/v/' + encodeURIComponent(data.slug);
+        setProgress('完成！');
+      }catch(e){
+        setProgress(''); setBar(0);
+        alert('建立失敗：' + (e.message || e));
+      }
+    });
+
+    /* ===== Viewer + Lightbox ===== */
+    let lbIndex = 0, lbItems = [];
+    function openLightbox(idx){ if(!lbItems.length) return; lbIndex = (idx+lbItems.length)%lbItems.length; const it = lbItems[lbIndex]; $('#lb-img').src = it.full; $('#lb-cap').textContent = it.caption || ''; $('#lightbox').classList.add('open'); }
+    function closeLightbox(){ $('#lightbox').classList.remove('open'); $('#lb-img').src = ''; }
+    function next(){ openLightbox(lbIndex+1); } function prev(){ openLightbox(lbIndex-1); }
+
+    async function loadPost(slug){
+      try{
+        const r=await fetch('/.netlify/functions/get-post?slug='+encodeURIComponent(slug));
+        const t=await r.text(); let d; try{ d=JSON.parse(t); }catch{ throw new Error(t); }
+        if(d.error) throw new Error(d.error);
+
+        $('#editor').classList.add('hidden');
+        $('#viewer').classList.remove('hidden');
+        $('#v-title').textContent=d.title||'未命名案件';
+        $('#v-date').textContent=d.date? new Date(d.date).toLocaleDateString() : '';
+
+        const tagsBox=$('#v-tags'); tagsBox.innerHTML='';
+        (d.tags||'').split(',').map(x=>x.trim()).filter(Boolean).forEach(t=>{
+          const s=document.createElement('span'); s.className='chip'; s.textContent='#'+t; tagsBox.appendChild(s);
+        });
+
+        const g=$('#gallery'); g.innerHTML=''; lbItems=[];
+        (d.items||[]).forEach((it,i)=>{
+          const full = lightboxUrl(it.url||'');
+          const thumb = galleryUrl(it.url||'');
+          const caption = it.caption || ('照片 '+(i+1));
+          lbItems.push({ full, caption });
+          const card=document.createElement('div'); card.className='card overflow-hidden';
+          card.innerHTML=`
+            <button class="w-full group" data-idx="${i}">
+              <img decoding="async" src="${thumb}" class="w-full h-auto object-contain" loading="lazy" alt="照片 ${i+1}"/>
+            </button>
+            <div class="p-3 text-base text-slate-700">${caption}</div>`;
+          g.appendChild(card);
+        });
+
+        $$('#gallery button').forEach(btn=>{
+          btn.addEventListener('click', ()=> openLightbox(parseInt(btn.dataset.idx,10) || 0), {passive:true});
+        });
+
+        $('#downloadZip').href='/.netlify/functions/zip-images?slug='+encodeURIComponent(slug);
+
+        const just = sessionStorage.getItem('justCreated') === '1';
+        const shareUrl = location.origin + location.pathname + '#/v/' + encodeURIComponent(slug);
+        if (just) {
+          $('#share-url').value = shareUrl;
+          $('#share-link').classList.remove('hidden');
+          $('#copy-link').onclick = () =>
+          navigator.clipboard.writeText(shareUrl)
+            .then(() => showCopyToast())
+            .catch(() => showCopyToast('複製失敗，請手動長按網址複製'));
+          sessionStorage.removeItem('justCreated');
+        } else {
+          $('#share-link').classList.add('hidden');
+        }
+      }catch(e){
+        alert('讀取失敗：' + (e.message || e));
+      }
+    }
+
+    (function initLightbox(){
+      const lb = $('#lightbox');
+      lb.querySelector('.close').addEventListener('click', closeLightbox);
+      lb.querySelector('.navNext').addEventListener('click', next);
+      lb.querySelector('.navPrev').addEventListener('click', prev);
+      lb.addEventListener('click', (e)=>{ if(e.target===lb) closeLightbox(); });
+      document.addEventListener('keydown', (e)=>{
+        if(!lb.classList.contains('open')) return;
+        if(e.key==='Escape') closeLightbox();
+        if(e.key==='ArrowRight') next();
+        if(e.key==='ArrowLeft') prev();
+      });
+    })();
+
+    function route(){
+      const h=location.hash||'#/new';
+      if (h.startsWith('#/v/')) loadPost(decodeURIComponent(h.replace('#/v/','')));
+      else { $('#viewer').classList.add('hidden'); $('#editor').classList.remove('hidden'); }
+    }
+    window.addEventListener('hashchange', route, { passive: true }); route();
+  });
+</script>
+
+<!-- 保持你原本的日期顯示切換（預設隱藏，分享頁顯示） -->
+<script>
+(function(){ try{ var p=new URLSearchParams(location.search); if(p.get('showDates')==='1'){ document.body.classList.add('show-dates'); } }catch(e){} })();
+</script>
+<script>
+(function(){
+  try{ var p=new URLSearchParams(location.search); if(p.get('showDates')==='1'){ document.body.classList.add('show-dates'); } }catch(e){}
+  function isTextNode(n){ return n && n.nodeType===Node.TEXT_NODE; }
+  var dateRe=/\b(20\d{2}|19\d{2})([-\/.])(0?[1-9]|1[0-2])\2(0?[1-9]|[12]\d|3[01])\b/;
+  function shouldSkip(el){ if(!el) return true; var name=(el.nodeName||'').toLowerCase(); return ['script','style','noscript','code','pre'].includes(name); }
+  function wrapTextNode(node){
+    var text=node.nodeValue, m=dateRe.exec(text); if(!m) return false;
+    var y=m[1], sep=m[2], mm=m[3], dd=m[4]; var start=m.index, end=start+m[0].length;
+    var before=text.slice(0,start), match=text.slice(start,end), after=text.slice(end);
+    var span=document.createElement('time'); span.className='work-date';
+    var to2=function(n){ n=parseInt(n,10); return (n<10?'0':'')+n; };
+    span.setAttribute('datetime', y+'-'+to2(mm)+'-'+to2(dd)); span.textContent=match;
+    var frag=document.createDocumentFragment(); if(before) frag.appendChild(document.createTextNode(before)); frag.appendChild(span); if(after) frag.appendChild(document.createTextNode(after));
+    node.parentNode.replaceChild(frag,node); return true;
+  }
+  function markKnownDateElems(){ try{ document.querySelectorAll(['.date','.post-date','.work .date','[data-date]','[itemprop="datePublished"]','time[datetime]'].join(',')).forEach(function(el){ if(!el.classList.contains('work-date')) el.classList.add('work-date'); }); }catch(e){} }
+  function scanAndWrap(root){
+    var walker=document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: function(node){ var p=node.parentNode; if(!p||shouldSkip(p)) return NodeFilter.FILTER_REJECT; if((p.closest&&p.closest('.work-date'))||(p.nodeName||'').toLowerCase()==='time') return NodeFilter.FILTER_REJECT; return dateRe.test(node.nodeValue)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT; }});
+    var nodes=[], n; while((n=walker.nextNode())) nodes.push(n); nodes.forEach(wrapTextNode);
+  }
+  function init(){ if(document.body && !document.body.classList.contains('show-dates')){ markKnownDateElems(); scanAndWrap(document.body); } }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
+  try{ var mo=new MutationObserver(function(muts){ if(!document.body||document.body.classList.contains('show-dates')) return; muts.forEach(function(m){ m.addedNodes&&m.addedNodes.forEach(function(node){ if(node.nodeType===1){ markKnownDateElems(); scanAndWrap(node); } else if(node.nodeType===3){ wrapTextNode(node); } }); }); }); mo.observe(document.documentElement,{childList:true,subtree:true}); }catch(e){}
+  function checkHashForShare(){ try{ var h=location.hash||''; if(/^#\/v\/\d+/.test(h)){ document.body.classList.add('show-dates'); return true; } }catch(e){} return false; }
+  checkHashForShare(); window.addEventListener('hashchange', checkHashForShare, false);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <!-- favicon -->
+  <link href="https://res.cloudinary.com/dijzndzw2/image/upload/c_scale,w_180/v1757176751/logo-3_hddq08.png" rel="apple-touch-icon" sizes="180x180"/>
+  <link href="https://res.cloudinary.com/dijzndzw2/image/upload/v1757176751/logo-3_hddq08.png" rel="shortcut icon"/>
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>自然大叔｜照片清單</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root{
+      --max-w:1120px;
+      --fg:#0d0d0d;
+      --muted:#666;
+      --bg:#fff;
+      --brand:#111827;
+      --card:#fff;
+      --border:#e5e7eb;
+      --radius:14px;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--fg);
+      font-family: system-ui,-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",Arial,Helvetica,sans-serif;
+      -webkit-font-smoothing:antialiased;
+    }
+    .container{
+      max-width:var(--max-w);
+      margin:0 auto;
+      padding:0 16px;
+    }
+    header{
+      background:var(--bg);
+      border-bottom:1px solid var(--border);
+      position:sticky;
+      top:0;
+      z-index:10;
+    }
+    .navrow{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:flex-start;
+      gap:12px;
+      padding:12px 0;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-weight:700;
+      font-size:14px;
+      line-height:1.2;
+      color:var(--fg);
+      white-space:nowrap;
+    }
+    .brand img{
+      width:32px;
+      height:32px;
+      object-fit:contain;
+      border-radius:8px;
+      border:1px solid var(--border);
+      background:#fff;
+    }
+    form#filters{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:8px;
+      font-size:14px;
+      flex:1;
+      min-width:200px;
+    }
+    #filters input[type="search"]{
+      min-width:160px;
+      padding:6px 10px;
+      border:1px solid var(--border);
+      border-radius:8px;
+      font-size:14px;
+    }
+    #filters select{
+      padding:6px 10px;
+      border:1px solid var(--border);
+      border-radius:8px;
+      background:#fff;
+      font-size:14px;
+    }
+    #filters button[type="submit"],
+    #filters button[type="button"]{
+      padding:6px 10px;
+      border:1px solid var(--border);
+      border-radius:8px;
+      background:var(--brand);
+      color:#fff;
+      cursor:pointer;
+      font-size:14px;
+      line-height:1.2;
+    }
+
+    
+    .quick-filters{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:8px;
+      font-size:12px;
+    }
+    .quick-filters button{
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:#fff;
+      cursor:pointer;
+    }
+    .quick-filters button:hover{
+      background:#f3f4f6;
+    }
+.admin-panel{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:8px;
+      margin-left:auto;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .admin-panel input[type="password"]{
+      padding:4px 8px;
+      border:1px solid var(--border);
+      border-radius:8px;
+      font-size:12px;
+    }
+    .admin-btn{
+      padding:4px 8px;
+      border:1px solid var(--border);
+      border-radius:8px;
+      background:#fff;
+      font-size:12px;
+      line-height:1.2;
+      cursor:pointer;
+    }
+    .admin-row{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:8px;
+    }
+    .hidden{display:none !important;}
+
+    main.container{
+      padding:16px 0 64px;
+    }
+    h1{
+      margin:0 0 4px;
+      font-size:20px;
+      line-height:1.3;
+      font-weight:700;
+      color:var(--fg);
+      display:inline-block;
+    }
+    #count{
+      font-size:14px;
+      color:var(--muted);
+      margin-left:8px;
+    }
+
+    #list{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));
+      gap:16px;
+      margin-top:20px;
+    }
+
+    /* 卡片外觀：目前版是有 padding 的版本。
+       你如果有另外一份 styles.css 控制卡片貼邊，那邊也可以沿用。
+       這裡保留 padding:12px，不影響這次日期顯示的回復邏輯 */
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      min-height:220px;
+    }
+
+    /* 預覽縮圖 */
+    .thumb-link{
+      position:relative;
+      width:100%;
+      min-height:240px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:10px;
+      overflow:hidden;
+      background:#f3f4f6;
+      border:1px solid var(--border);
+      margin-bottom:10px;
+    }
+    .thumb-img{
+      width:100%;
+      height:100%;
+      background-size:contain;
+      background-repeat:no-repeat;
+      background-position:center center;
+    }
+
+    /* 卡片 header（標題＋原本日期）
+       這裡我們把排版改成靠左，因為現在不會再把日期塞到右邊了 */
+    .card-head{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:flex-start;
+      justify-content:flex-start;
+      gap:4px 8px;
+      margin-bottom:4px;
+    }
+
+    .title-link{
+      font-size:15px;
+      font-weight:600;
+      color:var(--fg);
+      text-decoration:none;
+      line-height:1.3;
+      word-break:break-word;
+    }
+
+    /* 日期文字 class 還是保留，但之後不會 append 到卡片 */
+    .date{
+      font-size:12px;
+      color:var(--muted);
+      white-space:nowrap;
+    }
+
+    .tags{
+      font-size:12px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+    }
+    .tag{
+      display:inline-block;
+      padding:2px 6px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      background:#fafafa;
+      color:#333;
+      font-size:12px;
+      line-height:1.2;
+      white-space:nowrap;
+      max-width:100%;
+      text-overflow:ellipsis;
+      overflow:hidden;
+    }
+
+    .admin-controls{
+      margin-top:10px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      font-size:12px;
+    }
+    .admin-controls button{
+      border:1px solid var(--border);
+      background:#fff;
+      border-radius:8px;
+      font-size:12px;
+      line-height:1.2;
+      padding:4px 8px;
+      cursor:pointer;
+    }
+    .admin-controls button.danger{
+      color:#fff;
+      background:#dc2626;
+      border-color:#dc2626;
+    }
+
+    #pager{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      margin-top:24px;
+      font-size:14px;
+      color:var(--fg);
+    }
+    #pager button{
+      padding:6px 10px;
+      border:1px solid var(--border);
+      border-radius:8px;
+      background:#fff;
+      font-size:14px;
+      cursor:pointer;
+    }
+    #pager button[disabled]{
+      opacity:0.4;
+      cursor:not-allowed;
+    }
+    .empty{
+      text-align:center;
+      padding:40px 0;
+      color:var(--muted);
+      font-size:14px;
+    }
+    
+    /* ==== 刪除確認客製彈窗 ==== */
+    #confirm-modal{
+      position:fixed;
+      inset:0;
+      background:rgba(15,23,42,0.55);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      z-index:50;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .18s ease-out;
+    }
+    #confirm-modal.show{
+      opacity:1;
+      pointer-events:auto;
+    }
+    .confirm-card{
+      width:100%;
+      max-width:360px;
+      background:#f9fafb;
+      border-radius:16px;
+      box-shadow:0 18px 45px rgba(15,23,42,0.35);
+      border:1px solid var(--border);
+      padding:16px 18px 14px;
+      font-size:14px;
+    }
+    .confirm-title{
+      font-size:16px;
+      font-weight:600;
+      margin:0 0 4px;
+      color:#111827;
+    }
+    .confirm-message{
+      margin:0;
+      color:var(--muted);
+      white-space:pre-line;
+    }
+    .confirm-actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      margin-top:16px;
+    }
+    #confirm-cancel{
+      background:#fff;
+    }
+    #confirm-ok{
+      background:#dc2626;
+      border-color:#dc2626;
+      color:#fff;
+    }
+
+    @media(max-width:600px){
+      .navrow{
+        flex-direction:column;
+        align-items:stretch;
+      }
+      .admin-panel{
+        margin-left:0;
+        width:100%;
+        justify-content:flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <div class="navrow">
+      <div class="brand">
+        <img src="logo2.png" alt="logo2"/>
+        <div>自然大叔｜照片清單</div>
+      </div>
+
+      <form id="filters" onsubmit="event.preventDefault(); load();">
+        <input id="q" type="search" placeholder="搜尋標題或標籤…" />
+        <select id="sort">
+          <option value="date_desc">最新優先</option>
+          <option value="date_asc">最舊優先</option>
+          <option value="title_asc">標題A→Z</option>
+          <option value="title_desc">標題Z→A</option>
+        </select>
+        <button type="submit">套用</button>
+      </form>
+      <div class="quick-filters">
+        <button type="button" class="quick-filter" data-tag="冷氣">冷氣</button>
+        <button type="button" class="quick-filter" data-tag="洗衣機">洗衣機</button>
+        <button type="button" class="quick-filter" data-tag="水塔">水塔</button>
+      </div>
+
+      <div class="admin-panel">
+        <div id="admin-logged-out" class="admin-row">
+          <input type="password" id="admin-pass" placeholder="管理密碼" />
+          <button type="button" class="admin-btn" id="admin-login-btn">登入</button>
+        </div>
+
+        <div id="admin-logged-in" class="admin-row hidden">
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--fg);">
+            <input type="checkbox" id="showHiddenToggle"/>
+            <span>顯示隱藏作品</span>
+          </label>
+          <button type="button" class="admin-btn" id="admin-logout-btn">登出</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <h1>照片清單</h1><span id="count"></span>
+
+  <div id="list" aria-live="polite"></div>
+
+  <div id="empty" class="empty" hidden>目前沒有作品</div>
+
+  <div id="pager" hidden>
+    <button id="prev">‹ 上一頁</button>
+    <span id="pageInfo">1 / 1</span>
+    <button id="next">下一頁 ›</button>
+  </div>
+</main>
+
+
+  <!-- 刪除確認自訂彈窗 -->
+  <div id="confirm-modal">
+    <div class="confirm-card">
+      <h2 class="confirm-title">確認刪除</h2>
+      <p id="confirm-message" class="confirm-message"></p>
+      <div class="confirm-actions">
+        <button id="confirm-cancel" type="button">取消</button>
+        <button id="confirm-ok" type="button">確定刪除</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const PAGE_SIZE = 6;
+  const TOKEN_KEY = 'adminToken';
+
+  let allItems = [];
+  let currentPage = 1;
+
+  // ===== Auth helpers =====
+  function getToken(){
+    try { return localStorage.getItem(TOKEN_KEY) || ''; } catch(_) { return ''; }
+  }
+  function setToken(t){
+    try { if (t){ localStorage.setItem(TOKEN_KEY,t); } } catch(_){}
+  }
+  function clearToken(){
+    try { localStorage.removeItem(TOKEN_KEY); } catch(_){}
+  }
+  function isLoggedIn(){
+    return !!getToken();
+  }
+
+  function refreshAdminUI(){
+    const loggedOut = document.getElementById('admin-logged-out');
+    const loggedIn  = document.getElementById('admin-logged-in');
+    if (isLoggedIn()){
+      loggedOut.classList.add('hidden');
+      loggedIn.classList.remove('hidden');
+    }else{
+      loggedIn.classList.add('hidden');
+      loggedOut.classList.remove('hidden');
+      const toggle = document.getElementById('showHiddenToggle');
+      if (toggle) toggle.checked = false;
+    }
+  }
+
+  async function adminLogin(){
+    const pwInput = document.getElementById('admin-pass');
+    const password = pwInput.value.trim();
+    if (!password){
+      alert('請輸入管理密碼');
+      return;
+    }
+
+    const r = await fetch('/.netlify/functions/admin-login', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ password })
+    });
+    const data = await r.json().catch(()=>({}));
+    if(!r.ok || !data.token){
+      alert(data.error || '登入失敗');
+      return;
+    }
+    setToken(data.token);
+    pwInput.value = '';
+    refreshAdminUI();
+    await load();
+  }
+
+  function adminLogout(){
+    clearToken();
+    refreshAdminUI();
+    load();
+  }
+
+  // ===== API calls =====
+
+  async function fetchList(){
+    const token = getToken();
+    const wantHidden = !!(document.getElementById('showHiddenToggle')?.checked);
+
+    const url = new URL('/.netlify/functions/list-posts', location.origin);
+    if (wantHidden && token){
+      url.searchParams.set('showHidden', '1');
+    }
+
+    const headers = {};
+    if (token){
+      headers['Authorization'] = 'Bearer ' + token;
+    }
+
+    const resp = await fetch(url.toString(), { headers });
+    if(!resp.ok){
+      throw new Error('載入照片清單失敗 (' + resp.status + ')');
+    }
+
+    const json = await resp.json();
+    return Array.isArray(json.items) ? json.items : [];
+  }
+
+  async function apiToggleVisible(slug, nextVisible){
+    const token = getToken();
+    if (!token){
+      alert('請先登入管理員');
+      return;
+    }
+    const resp = await fetch('/.netlify/functions/update-visible', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer ' + token
+      },
+      body: JSON.stringify({
+        slug,
+        visible: nextVisible
+      })
+    });
+    const data = await resp.json().catch(()=>({}));
+    if(!resp.ok){
+      alert(data.error || '更新顯示狀態失敗');
+    }
+  }
+
+  async function apiDeletePost(slug){
+    const token = getToken();
+    if (!token){
+      alert('請先登入管理員');
+      return;
+    }
+    const resp = await fetch('/.netlify/functions/delete-post', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer ' + token
+      },
+      body: JSON.stringify({ slug })
+    });
+    const data = await resp.json().catch(()=>({}));
+    if(!resp.ok){
+      alert(data.error || '刪除失敗');
+    }
+  }
+
+  // ===== filter/sort/pagination =====
+
+  function applyFilters(items){
+    const q = document.getElementById('q').value.trim().toLowerCase();
+    const sort = document.getElementById('sort').value;
+
+    let out = items;
+    if (q){
+      out = out.filter(x=>{
+        const title = (x.title || x.slug || '').toLowerCase();
+        const tagsArr = Array.isArray(x.tags)
+          ? x.tags
+          : (typeof x.tags === 'string' ? x.tags.split(/[,，\s]+/).filter(Boolean) : []);
+        const tagsText = tagsArr.join(' ').toLowerCase();
+        return title.includes(q) || tagsText.includes(q);
+      });
+    }
+
+    out = out.slice();
+    out.sort((a,b)=>{
+      if (sort === 'date_desc'){
+        return new Date(b.date || b.created_at || 0) - new Date(a.date || a.created_at || 0);
+      }
+      if (sort === 'date_asc'){
+        return new Date(a.date || a.created_at || 0) - new Date(b.date || b.created_at || 0);
+      }
+      if (sort === 'title_asc'){
+        return String(a.title||'').localeCompare(String(b.title||''));
+      }
+      if (sort === 'title_desc'){
+        return String(b.title||'').localeCompare(String(a.title||''));
+      }
+      return 0;
+    });
+
+    return out;
+  }
+
+  // 切換隱藏 / 顯示
+  async function toggleVisible(slug, currentVisible){
+    const wantHide = currentVisible !== false;
+    const nextVisible = !wantHide;
+    await apiToggleVisible(slug, nextVisible);
+    await load();
+  }
+
+  
+  function showConfirm(message){
+    return new Promise((resolve)=>{
+      const modal = document.getElementById('confirm-modal');
+      const msgEl = document.getElementById('confirm-message');
+      const okBtn = document.getElementById('confirm-ok');
+      const cancelBtn = document.getElementById('confirm-cancel');
+      if(!modal || !msgEl || !okBtn || !cancelBtn){
+        const ok = window.confirm(message);
+        resolve(ok);
+        return;
+      }
+      msgEl.textContent = message;
+      modal.classList.add('show');
+
+      const cleanup = (result)=>{
+        modal.classList.remove('show');
+        okBtn.removeEventListener('click', onOk);
+        cancelBtn.removeEventListener('click', onCancel);
+        modal.removeEventListener('click', onBackdrop);
+        resolve(result);
+      };
+
+      const onOk = (e)=>{
+        e.stopPropagation();
+        cleanup(true);
+      };
+      const onCancel = (e)=>{
+        e.stopPropagation();
+        cleanup(false);
+      };
+      const onBackdrop = (e)=>{
+        if(e.target === modal){
+          cleanup(false);
+        }
+      };
+
+      okBtn.addEventListener('click', onOk);
+      cancelBtn.addEventListener('click', onCancel);
+      modal.addEventListener('click', onBackdrop);
+    });
+  }
+
+  async function deletePost(slug){
+    const msg = `確定要永久刪除「${slug}」？\n此動作會刪除所有圖片與資料，且無法復原！`;
+    const ok = await showConfirm(msg);
+    if(!ok) return;
+    await apiDeletePost(slug);
+    await load();
+  }
+
+  function render(items){
+    document.getElementById('count').textContent = `（共 ${items.length} 筆）`;
+
+    const listEl  = document.getElementById('list');
+    const emptyEl = document.getElementById('empty');
+    const pagerEl = document.getElementById('pager');
+
+    listEl.innerHTML = '';
+
+    if(!items.length){
+      emptyEl.hidden = false;
+      pagerEl.hidden = true;
+      return;
+    } else {
+      emptyEl.hidden = true;
+    }
+
+    const start = (currentPage-1) * PAGE_SIZE;
+    const pageItems = items.slice(start, start+PAGE_SIZE);
+    const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+
+    for(const it of pageItems){
+      const slug = it.slug;
+      const detailUrl = `post.html?slug=${encodeURIComponent(slug)}`;
+      const thumbUrl = it.preview || (Array.isArray(it.items) && it.items[0] ? it.items[0].url : '');
+
+      const card = document.createElement('article');
+      card.className = 'card';
+
+      // 縮圖
+      const thumbLink = document.createElement('a');
+      thumbLink.className = 'thumb-link';
+      thumbLink.href = detailUrl;
+
+      const thumbImg = document.createElement('div');
+      thumbImg.className = 'thumb-img';
+      if (thumbUrl){
+        thumbImg.style.backgroundImage = `url("${thumbUrl}")`;
+      }
+      thumbLink.appendChild(thumbImg);
+      card.appendChild(thumbLink);
+
+      // 卡片標題列（不再顯示日期）
+      const head = document.createElement('div');
+      head.className = 'card-head';
+
+      const titleA = document.createElement('a');
+      titleA.className = 'title-link';
+      titleA.href = detailUrl;
+      titleA.textContent = it.title || it.slug || '未命名';
+
+      head.appendChild(titleA);
+      // ⚠ 日期不再加入列表卡片
+      // const dateSpan = document.createElement('span');
+      // dateSpan.className = 'date';
+      // const d = new Date(it.date || it.created_at || Date.now());
+      // dateSpan.textContent = d.toLocaleDateString('zh-TW');
+      // head.appendChild(dateSpan);
+
+      card.appendChild(head);
+
+      // tags
+      const tagsWrap = document.createElement('div');
+      tagsWrap.className = 'tags';
+      const tagList = Array.isArray(it.tags)
+        ? it.tags
+        : (typeof it.tags === 'string'
+           ? it.tags.split(/[,，\s]+/).filter(Boolean)
+           : []);
+      tagList.forEach(tagText=>{
+        const span = document.createElement('span');
+        span.className = 'tag';
+        span.textContent = tagText;
+        tagsWrap.appendChild(span);
+      });
+      card.appendChild(tagsWrap);
+
+      // 管理員模式下，如果是 hidden，顯示紅字提醒
+      if(isLoggedIn() && it.visible === false){
+        const hiddenNote = document.createElement('div');
+        hiddenNote.style.fontSize = '12px';
+        hiddenNote.style.color = 'crimson';
+        hiddenNote.style.marginTop = '6px';
+        hiddenNote.textContent = '（已隱藏，不在公開清單顯示）';
+        card.appendChild(hiddenNote);
+      }
+
+      // 管理員控制列
+      if(isLoggedIn()){
+        const ctrl = document.createElement('div');
+        ctrl.className = 'admin-controls';
+
+        const toggleBtn = document.createElement('button');
+        toggleBtn.textContent = (it.visible === false) ? '取消隱藏' : '隱藏';
+        toggleBtn.addEventListener('click', ()=>{
+          toggleVisible(slug, it.visible);
+        });
+        ctrl.appendChild(toggleBtn);
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'danger';
+        delBtn.textContent = '刪除';
+        delBtn.addEventListener('click', ()=>{ deletePost(slug); });
+        ctrl.appendChild(delBtn);
+
+        card.appendChild(ctrl);
+      }
+
+      listEl.appendChild(card);
+    }
+
+    // 分頁 UI
+    const pager = document.getElementById('pager');
+    pager.hidden = (totalPages <= 1);
+    document.getElementById('pageInfo').textContent = `${currentPage} / ${totalPages}`;
+    document.getElementById('prev').disabled = currentPage <= 1;
+    document.getElementById('next').disabled = currentPage >= totalPages;
+
+    document.getElementById('prev').onclick = ()=>{
+      if(currentPage>1){
+        currentPage--;
+        render(applyFilters(allItems));
+      }
+    };
+    document.getElementById('next').onclick = ()=>{
+      if(currentPage<totalPages){
+        currentPage++;
+        render(applyFilters(allItems));
+      }
+    };
+  }
+
+  // ===== lifecycle =====
+
+  async function load(){
+    try {
+      currentPage = 1;
+      allItems = await fetchList();
+      render(applyFilters(allItems));
+    } catch(e){
+      console.error(e);
+      document.getElementById('list').innerHTML =
+        `<div class="empty">${e.message || e}</div>`;
+      document.getElementById('empty').hidden = true;
+      document.getElementById('pager').hidden = true;
+    }
+  }
+
+  function initEvents(){
+    document.getElementById('filters').addEventListener('submit', ()=>{
+      currentPage = 1;
+      render(applyFilters(allItems));
+    });
+
+    document.getElementById('admin-login-btn')
+      .addEventListener('click', adminLogin);
+
+    document.getElementById('admin-logout-btn')
+      .addEventListener('click', adminLogout);
+
+    document.getElementById('showHiddenToggle')
+      .addEventListener('change', ()=>{ load(); });
+
+    // 常用分類快捷鍵：點一下就帶入搜尋並套用篩選
+    document.querySelectorAll('.quick-filter').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const tag = btn.dataset.tag || btn.textContent.trim();
+        const qInput = document.getElementById('q');
+        if (qInput){
+          qInput.value = tag;
+        }
+        currentPage = 1;
+        render(applyFilters(allItems));
+      });
+    });
+  }
+
+  function init(){
+    refreshAdminUI();
+    initEvents();
+    load();
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>

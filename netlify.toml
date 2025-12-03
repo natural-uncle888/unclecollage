@@ -1,0 +1,9 @@
+[build]
+  command = ""
+  publish = "."
+
+[functions]
+  node_bundler = "esbuild"
+
+[build.environment]
+  NODE_VERSION = "18"

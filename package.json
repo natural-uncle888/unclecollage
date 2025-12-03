@@ -1,0 +1,11 @@
+{
+  "name": "cleaning-collages-lightbox-nav-uiupdate",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "cloudinary": "^1.41.0",
+    "jszip": "^3.10.1",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
