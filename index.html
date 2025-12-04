@@ -330,6 +330,7 @@
     $('#admin-login-btn')?.addEventListener('click', adminLogin);
     $('#admin-logout-btn')?.addEventListener('click', adminLogout);
     refreshAdminUI();
+    initDescTemplateButtons();
 
     /* ====== 編輯列邏輯 ====== */
     function initRowControls(row){
@@ -514,8 +515,7 @@
         setProgress(''); setBar(0);
         alert('建立失敗：' + (e.message || e));
       }
-        initDescTemplateButtons();
-  });
+          });
 
     /* ===== Viewer + Lightbox ===== */
     let lbIndex = 0, lbItems = [];
