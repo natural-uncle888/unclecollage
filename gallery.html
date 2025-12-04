@@ -29,6 +29,7 @@
     body{
       margin:0;
       background:var(--bg);
+      background:linear-gradient(to bottom,#f9fafb,#e5e7eb);
       color:var(--fg);
       font-family: system-ui,-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",Arial,Helvetica,sans-serif;
       -webkit-font-smoothing:antialiased;
@@ -184,12 +185,13 @@
        這裡保留 padding:12px，不影響這次日期顯示的回復邏輯 */
     .card{
       background:var(--card);
-      border:1px solid var(--border);
+      border:1px solid rgba(148,163,184,.3);
       border-radius:var(--radius);
-      padding:12px;
+      padding:14px 14px 12px;
       display:flex;
       flex-direction:column;
       min-height:220px;
+      box-shadow:0 10px 30px rgba(15,23,42,.08);
     }
 
     /* 預覽縮圖 */
@@ -367,14 +369,49 @@
     }
 
     @media(max-width:600px){
+      body{
+        font-size:14px;
+      }
+      header{
+        padding:10px 0;
+      }
       .navrow{
         flex-direction:column;
         align-items:stretch;
+        gap:10px;
+      }
+      .brand{
+        width:100%;
+        justify-content:flex-start;
+      }
+      #filters{
+        width:100%;
+        flex-direction:column;
+        align-items:stretch;
+      }
+      #filters input[type="search"],
+      #filters select{
+        width:100%;
+      }
+      .quick-filters{
+        width:100%;
       }
       .admin-panel{
         margin-left:0;
         width:100%;
         justify-content:flex-start;
+      }
+      .card-list{
+        gap:12px;
+      }
+      .card{
+        padding:12px 12px 12px;
+      }
+      .card-title{
+        font-size:15px;
+      }
+      .card-meta{
+        font-size:12px;
       }
     }
   </style>

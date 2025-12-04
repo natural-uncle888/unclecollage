@@ -15,7 +15,7 @@
 <style>
     :root { --max-w: 1120px; --fg:#0d0d0d; --muted:#666; --bg:#fff; --brand:#111827; --radius: 14px; }
     *{ box-sizing:border-box }
-    html, body { margin:0; padding:0; font-family: 'Noto Sans TC', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color: var(--fg); background: var(--bg); }
+    html, body { margin:0; padding:0; font-family: 'Noto Sans TC', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color: var(--fg); background: var(--bg); background: linear-gradient(to bottom,#f9fafb,#e5e7eb); }
     a { color: inherit; text-decoration: none }
     img { max-width: 100%; display:block; height:auto }
     .container { max-width: var(--max-w); margin: 0 auto; padding: 0 20px; }
@@ -33,10 +33,53 @@
     .ghost { padding:10px 14px; border-radius:10px; border:1px solid #ddd; background:#fff }
     .desc { margin-top:14px; line-height:1.7; color:#333 }
     .grid { display:grid; grid-template-columns: repeat(12, 1fr); gap:20px; margin-top:24px }
-    .card { grid-column: span 12; border:1px solid #eee; border-radius: var(--radius); overflow:hidden; background:#fff; }
+    .card { grid-column: span 12; border:1px solid rgba(148,163,184,.35); border-radius: var(--radius); overflow:hidden; background:#fff; box-shadow:0 16px 40px rgba(15,23,42,.12); }
     .cap { padding:10px 12px; font-size:14px; color:#444; border-top:1px solid #f0f0f0 }
     .meta { display:flex; align-items:center; gap:8px; color:#777; font-size:14px }
-    @media (min-width: 900px){ .card{ grid-column: span 6 } }
+    @med
+    @media (max-width: 640px){
+      header{
+        padding:6px 0;
+      }
+      .nav{
+        height:auto;
+        min-height:52px;
+      }
+      .container{
+        padding:0 14px;
+      }
+      main{
+        padding:20px 0 40px;
+      }
+      .title{
+        font-size:20px;
+      }
+      .meta{
+        font-size:13px;
+        flex-wrap:wrap;
+      }
+      .actions{
+        flex-direction:column;
+        align-items:stretch;
+      }
+      .actions .btn,
+      .actions .ghost{
+        width:100%;
+        text-align:center;
+        justify-content:center;
+      }
+      .grid{
+        gap:14px;
+        margin-top:18px;
+      }
+      .card{
+        border-radius:12px;
+      }
+      .cap{
+        font-size:13px;
+      }
+    }
+ia (min-width: 900px){ .card{ grid-column: span 6 } }
   </style>
 <link href="assets/styles.css" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com"></script>

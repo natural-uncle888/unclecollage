@@ -45,7 +45,54 @@
 </style>
 
 <!-- 日期隱藏/顯示（沿用你現有機制） -->
-<style>.work-date{display:none !important;}.show-dates .work-date{display:inline !important;}time[datetime].work-date{display:none !important;}.show-dates time[datetime].work-date{display:inline !important;}</style>
+<style>.work-date{display:none !important;}.show-dates .work-date{display:inline !important;}time[datetime].work-date{display:none !important;}.show-dates time[datetime].work-date{display:inline !important;}
+  /* Mobile tweaks */
+  @media (max-width: 640px){
+    body{
+      font-size:14px;
+    }
+    header > div{
+      align-items:flex-start;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    #admin-panel{
+      margin-left:0;
+      width:100%;
+      justify-content:flex-start;
+      margin-top:4px;
+      gap:6px;
+    }
+    #admin-panel input{
+      width:100%;
+      max-width:160px;
+    }
+    main{
+      padding-top:1rem;
+      padding-bottom:2rem;
+    }
+    .card{
+      border-radius:1rem;
+      padding:1.25rem;
+    }
+    .btn{
+      font-size:0.875rem;
+      padding:0.5rem 0.9rem;
+    }
+    .input{
+      font-size:0.875rem;
+      padding:0.6rem 0.85rem;
+    }
+    .row{
+      flex-wrap:wrap;
+      align-items:flex-start;
+    }
+    .thumb{
+      width:72px;
+      height:72px;
+    }
+  }
+</style>
 </head>
 
 <body class="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 text-slate-900">
