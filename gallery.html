@@ -798,8 +798,11 @@
     });
   }
 
-  async function deletePost(slug){
-    const msg = `確定要永久刪除「${slug}」？\n此動作會刪除所有圖片與資料，且無法復原！`;
+  async function deletePost(slug, displayName){
+  const name = displayName || slug;
+  const ok = await showConfirm(
+    '確定要刪除這筆案件嗎？\n\n案件/地點：' + name
+  );
     const ok = await showConfirm(msg);
     if(!ok) return;
     await apiDeletePost(slug);
