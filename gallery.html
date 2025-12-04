@@ -314,6 +314,59 @@
       font-size:14px;
     }
     
+
+    /* ==== 提示訊息客製彈窗 ==== */
+    #alert-modal{
+      position:fixed;
+      inset:0;
+      background:rgba(15,23,42,0.55);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      z-index:40;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .18s ease-out;
+    }
+    #alert-modal.show{
+      opacity:1;
+      pointer-events:auto;
+    }
+    .alert-card{
+      width:100%;
+      max-width:360px;
+      background:#f9fafb;
+      border-radius:16px;
+      box-shadow:0 18px 45px rgba(15,23,42,0.35);
+      border:1px solid var(--border);
+      padding:16px 18px 14px;
+      font-size:14px;
+    }
+    .alert-title{
+      font-size:16px;
+      font-weight:600;
+      margin:0 0 4px;
+      color:#111827;
+    }
+    .alert-message{
+      margin:0;
+      color:var(--muted);
+      white-space:pre-line;
+    }
+    .alert-actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:8px;
+      margin-top:16px;
+    }
+    #alert-ok{
+      background:#0f172a;
+      border-color:#0f172a;
+      color:#fff;
+    }
+
+
     /* ==== 刪除確認客製彈窗 ==== */
     #confirm-modal{
       position:fixed;
@@ -474,6 +527,17 @@
 </main>
 
 
+  <!-- 提示訊息自訂彈窗 -->
+  <div id="alert-modal">
+    <div class="alert-card">
+      <h2 class="alert-title">提示</h2>
+      <p id="alert-message" class="alert-message"></p>
+      <div class="alert-actions">
+        <button id="alert-ok" type="button">知道了</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 刪除確認自訂彈窗 -->
   <div id="confirm-modal">
     <div class="confirm-card">
@@ -508,6 +572,31 @@
     return !!getToken();
   }
 
+
+  function showAlert(message){
+    const modal = document.getElementById('alert-modal');
+    const msgEl = document.getElementById('alert-message');
+    const okBtn = document.getElementById('alert-ok');
+    if (!modal || !msgEl || !okBtn){
+      window.alert(message);
+      return;
+    }
+    msgEl.textContent = String(message || '');
+    modal.classList.add('show');
+
+    const cleanup = ()=>{
+      modal.classList.remove('show');
+      okBtn.removeEventListener('click', onOk);
+      modal.removeEventListener('click', onBackdrop);
+    };
+    const onOk = ()=> cleanup();
+    const onBackdrop = (e)=>{ if(e.target === modal) cleanup(); };
+
+    okBtn.addEventListener('click', onOk);
+    modal.addEventListener('click', onBackdrop);
+  }
+
+
   function refreshAdminUI(){
     const loggedOut = document.getElementById('admin-logged-out');
     const loggedIn  = document.getElementById('admin-logged-in');
@@ -526,7 +615,7 @@
     const pwInput = document.getElementById('admin-pass');
     const password = pwInput.value.trim();
     if (!password){
-      alert('請輸入管理密碼');
+      showAlert('請輸入管理密碼');
       return;
     }
 
@@ -537,7 +626,7 @@
     });
     const data = await r.json().catch(()=>({}));
     if(!r.ok || !data.token){
-      alert(data.error || '登入失敗');
+      showAlert(data.error || '登入失敗');
       return;
     }
     setToken(data.token);
@@ -580,7 +669,7 @@
   async function apiToggleVisible(slug, nextVisible){
     const token = getToken();
     if (!token){
-      alert('請先登入管理員');
+      showAlert('請先登入管理員');
       return;
     }
     const resp = await fetch('/.netlify/functions/update-visible', {
@@ -596,14 +685,14 @@
     });
     const data = await resp.json().catch(()=>({}));
     if(!resp.ok){
-      alert(data.error || '更新顯示狀態失敗');
+      showAlert(data.error || '更新顯示狀態失敗');
     }
   }
 
   async function apiDeletePost(slug){
     const token = getToken();
     if (!token){
-      alert('請先登入管理員');
+      showAlert('請先登入管理員');
       return;
     }
     const resp = await fetch('/.netlify/functions/delete-post', {
@@ -616,7 +705,7 @@
     });
     const data = await resp.json().catch(()=>({}));
     if(!resp.ok){
-      alert(data.error || '刪除失敗');
+      showAlert(data.error || '刪除失敗');
     }
   }
 

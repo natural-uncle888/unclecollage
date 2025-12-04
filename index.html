@@ -225,6 +225,17 @@
   </div>
 </div>
 
+<!-- 全域提示彈窗 -->
+<div id="alert-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60">
+  <div class="mx-4 max-w-sm rounded-2xl bg-white shadow-xl border border-slate-200 p-5">
+    <h2 class="text-base font-semibold text-slate-900 mb-2">提示</h2>
+    <p id="alert-message" class="text-sm text-slate-700 whitespace-pre-line"></p>
+    <div class="mt-4 flex justify-end">
+      <button id="alert-ok" type="button" class="btn btn-primary tap px-4 py-1.5 text-sm">知道了</button>
+    </div>
+  </div>
+</div>
+
 <!-- Lightbox -->
 <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="圖片放大檢視">
   <button class="close" aria-label="關閉">✕</button>
@@ -260,6 +271,34 @@
         el.classList.remove('opacity-100', 'translate-y-0');
         el.classList.add('opacity-0', 'translate-y-3');
       }, 2000);
+    }
+
+
+    function showAlert(message) {
+      const modal = document.getElementById('alert-modal');
+      const msgEl = document.getElementById('alert-message');
+      const okBtn = document.getElementById('alert-ok');
+      if (!modal || !msgEl || !okBtn) {
+        window.alert(message);
+        return;
+      }
+      msgEl.textContent = String(message || '');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      const close = () => {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+        okBtn.removeEventListener('click', onOk);
+        modal.removeEventListener('click', onBackdrop);
+      };
+      const onOk = () => close();
+      const onBackdrop = (e) => {
+        if (e.target === modal) close();
+      };
+
+      okBtn.addEventListener('click', onOk);
+      modal.addEventListener('click', onBackdrop);
     }
 
 
@@ -312,12 +351,12 @@
 
     async function adminLogin(){
       const pw = $('#admin-pass').value.trim();
-      if(!pw){ alert('請輸入管理密碼'); return; }
+      if(!pw){ showAlert('請輸入管理密碼'); return; }
       const r = await fetch('/.netlify/functions/admin-login',{
         method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password: pw })
       });
       const data = await r.json().catch(()=>({}));
-      if(!r.ok || !data.token){ alert(data.error || '登入失敗'); return; }
+      if(!r.ok || !data.token){ showAlert(data.error || '登入失敗'); return; }
       setToken(data.token);
       $('#admin-pass').value = '';
       refreshAdminUI();
@@ -418,7 +457,7 @@
       row.querySelector('.remove').addEventListener('click',()=>row.remove());
       fileInput.addEventListener('change',()=>{
         const f=fileInput.files[0]; if(!f) return;
-        if(f.size>MAX_MB*1024*1024){ alert('圖片超過 '+MAX_MB+'MB'); fileInput.value=''; return; }
+        if(f.size>MAX_MB*1024*1024){ showAlert('圖片超過 '+MAX_MB+'MB'); fileInput.value=''; return; }
         row._file = f; setPreviewFromFile(f);
       });
 
@@ -456,7 +495,7 @@
     $('#upload').addEventListener('click', async ()=>{
       // ✅ 需要先登入（新增）
       const token = getToken();
-      if (!token){ alert('請先登入管理員再建立分享'); return; }
+      if (!token){ showAlert('請先登入管理員再建立分享'); return; }
 
       const title=$('#title').value.trim();
       const date=$('#date').value;
@@ -465,7 +504,7 @@
       const tags=$('#tags').value.trim();
       let slug=$('#slug').value.trim();
       const rows=$$('#items>.row');
-      if(!rows.length) return alert('請至少新增一張');
+      if(!rows.length) return showAlert('請至少新增一張');
       if(!slug) slug=slugify((title||'case')+'-'+Date.now().toString().slice(-6));
 
       try{
@@ -476,8 +515,8 @@
         for (const row of rows){
           const f = row.querySelector('input[type=file]')?.files?.[0] || row._file;
           const caption = getRowCaption(row);
-          if(!f){ alert('有一列未選圖片'); return; }
-          if(f.size>MAX_MB*1024*1024){ alert('有圖片超過 '+MAX_MB+'MB'); return; }
+          if(!f){ showAlert('有一列未選圖片'); return; }
+          if(f.size>MAX_MB*1024*1024){ showAlert('有圖片超過 '+MAX_MB+'MB'); return; }
           setProgress(`上傳中… ${done+1} / ${rows.length}`);
           const url = await uploadToCloudinary(f, folder);
           items.push({ url, caption });
@@ -512,7 +551,7 @@
         setProgress('完成！');
       }catch(e){
         setProgress(''); setBar(0);
-        alert('建立失敗：' + (e.message || e));
+        showAlert('建立失敗：' + (e.message || e));
       }
           });
 
@@ -576,7 +615,7 @@
           $('#share-link').classList.add('hidden');
         }
       }catch(e){
-        alert('讀取失敗：' + (e.message || e));
+        showAlert('讀取失敗：' + (e.message || e));
       }
     }
 
