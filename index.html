@@ -498,7 +498,8 @@
         let data; try{ data = JSON.parse(txt); }catch{ data = { error: txt }; }
         if(!resp.ok || !data.ok) throw new Error(data.error || '建立失敗');
 
-        const shareUrl = location.origin + location.pathname + '#/v/' + encodeURIComponent(data.slug);
+        const basePath = location.pathname.replace(/index\.html$/,'').replace(/\/$/,'');
+        const shareUrl = location.origin + basePath + '/post.html?slug=' + encodeURIComponent(data.slug) + '&showDates=1';
         $('#share-url').value = shareUrl;
         $('#share-link').classList.remove('hidden');
         $('#copy-link').onclick = () =>
@@ -561,7 +562,8 @@
         $('#downloadZip').href='/.netlify/functions/zip-images?slug='+encodeURIComponent(slug);
 
         const just = sessionStorage.getItem('justCreated') === '1';
-        const shareUrl = location.origin + location.pathname + '#/v/' + encodeURIComponent(slug);
+        const basePath = location.pathname.replace(/index\.html$/,'').replace(/\/$/,'');
+        const shareUrl = location.origin + basePath + '/post.html?slug=' + encodeURIComponent(slug) + '&showDates=1';
         if (just) {
           $('#share-url').value = shareUrl;
           $('#share-link').classList.remove('hidden');

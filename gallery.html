@@ -740,7 +740,7 @@
 
     for(const it of pageItems){
       const slug = it.slug;
-      const detailUrl = `post.html?slug=${encodeURIComponent(slug)}`;
+      const detailUrl = `post.html?slug=${encodeURIComponent(slug)}&showDates=1`;
       const thumbUrl = it.preview || (Array.isArray(it.items) && it.items[0] ? it.items[0].url : '');
 
       const card = document.createElement('article');
