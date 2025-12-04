@@ -412,6 +412,34 @@
       gap:8px;
       margin-top:16px;
     }
+
+    /* 強化刪除確認按鈕樣式 */
+    #confirm-ok,
+    #confirm-cancel{
+      border-radius:999px;
+      padding:6px 14px;
+      font-weight:600;
+      border-width:1px;
+      border-style:solid;
+      cursor:pointer;
+    }
+    #confirm-cancel{
+      background:#fff;
+      border-color:#d1d5db;
+      color:#374151;
+    }
+    #confirm-cancel:hover{
+      background:#f3f4f6;
+    }
+    #confirm-ok{
+      background:#dc2626;
+      border-color:#dc2626;
+      color:#fff;
+    }
+    #confirm-ok:hover{
+      background:#b91c1c;
+      border-color:#b91c1c;
+    }
     #confirm-cancel{
       background:#fff;
     }
@@ -799,10 +827,8 @@
   }
 
   async function deletePost(slug, displayName){
-  const name = displayName || slug;
-  const ok = await showConfirm(
-    '確定要刪除這筆案件嗎？\n\n案件/地點：' + name
-  );
+    const name = displayName || slug;
+    const msg = `確定要永久刪除這筆案件嗎？\n\n案件/地點：${name}\n\n此動作會刪除所有圖片與資料，且無法復原！`;
     const ok = await showConfirm(msg);
     if(!ok) return;
     await apiDeletePost(slug);
