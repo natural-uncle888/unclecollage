@@ -37,16 +37,21 @@
   .lightbox .close { position:absolute; top:16px; right:16px; color:#e2e8f0; font-size:26px; }
   .lb-controls { position:absolute; left:0; right:0; bottom:16px; display:flex; align-items:center; justify-content:center; gap:16px; pointer-events:none; }
   .lb-controls .navBtn { pointer-events:auto; font-size:20px; color:#fff; width:56px; height:56px; display:flex; align-items:center; justify-content:center; border-radius:9999px; background:rgba(17,24,39,.6); border:1px solid rgba(255,255,255,.2); backdrop-filter: blur(6px); }
-</style>
-<style>
-  @media (prefers-reduced-motion: reduce){
-    * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
-  }
-</style>
 
-<!-- 日期隱藏/顯示（沿用你現有機制） -->
-<style>.work-date{display:none !important;}.show-dates .work-date{display:inline !important;}time[datetime].work-date{display:none !important;}.show-dates time[datetime].work-date{display:inline !important;}
-  /* Mobile tweaks */
+  .btn-desc-template {
+    font-size:11px;
+    padding:0.25rem 0.6rem;
+    border-radius:9999px;
+    border:1px dashed rgba(148,163,184,.9);
+    background:rgba(248,250,252,.9);
+    color:#475569;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .btn-desc-template:hover {
+    background:#e2e8f0;
+  }
+
   @media (max-width: 640px){
     body{
       font-size:14px;
@@ -93,6 +98,14 @@
     }
   }
 </style>
+<style>
+  @media (prefers-reduced-motion: reduce){
+    * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  }
+</style>
+
+<!-- 日期隱藏/顯示（沿用你現有機制） -->
+<style>.work-date{display:none !important;}.show-dates .work-date{display:inline !important;}time[datetime].work-date{display:none !important;}.show-dates time[datetime].work-date{display:inline !important;}</style>
 </head>
 
 <body class="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 text-slate-900">
@@ -131,10 +144,18 @@
     <div class="mt-4">
       <label class="block text-sm mb-1 text-slate-600">案件說明（選填）</label>
       <textarea id="desc" class="input" rows="4" placeholder="例：頂樓水塔多年未清洗，本次重點是除泥沙與消毒…"></textarea>
+      <div class="mt-2 flex flex-wrap items-center gap-1 text-[11px] text-slate-500">
+        <span class="mr-1">快速插入常用說明：</span>
+        <button type="button" class="btn-desc-template" data-template="ac-basic">冷氣清洗（住家）</button>
+        <button type="button" class="btn-desc-template" data-template="washer-basic">直立式洗衣機清洗（住家）</button>
+        <button type="button" class="btn-desc-template" data-template="tank-basic">水塔清洗</button>
+        <button type="button" class="btn-desc-template" data-template="ac-heavy">冷氣清洗（多年未保養）</button>
+        <button type="button" class="btn-desc-template" data-template="washer-odor">直立式洗衣機清洗（排水異味）</button>
+      </div>
     </div>
 
     <div class="mt-4">
-      <label class="block text-sm mb-2 text-slate-600">照片清單（可拖曳排序）</label>
+      <label class="block text-sm mb-2 text-slate-600">照片清單（可拖曳排序）</label
       <div id="items" class="space-y-3"></div>
       <div class="flex flex-wrap gap-2 mt-2">
         <button id="addItem" class="btn btn-ghost tap">＋ 新增一張</button>
@@ -149,6 +170,11 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
       <div><label class="block text-sm mb-1 text-slate-600">標籤（選填）</label><input id="tags" class="input" placeholder="以逗號分隔，例如：冷氣, 住家"/></div>
       <div><label class="block text-sm mb-1 text-slate-600">自訂網址代稱（選填）</label><input id="slug" class="input" placeholder="例如：wang-2025-09"/></div>
+    <div class="mt-2 flex items-center gap-2 text-xs text-slate-600">
+      <input id="hidden" type="checkbox" class="w-4 h-4 border-slate-300 rounded"/>
+      <label for="hidden">建立後先設為「隱藏」，不在作品清單中公開顯示</label>
+    </div>
+
     </div>
 
     <div class="mt-5 flex items-center gap-3">
@@ -254,7 +280,30 @@
     function getToken(){ try{ return localStorage.getItem(TOKEN_KEY) || ''; }catch{ return ''; } }
     function setToken(t){ try{ if(t) localStorage.setItem(TOKEN_KEY,t); }catch{} }
     function clearToken(){ try{ localStorage.removeItem(TOKEN_KEY); }catch{} }
-    function isLoggedIn(){ return !!getToken(); }
+   
+    // 案件說明常用範例快速插入
+    const descTemplates = {
+      'ac-basic': '住家分離式冷氣長期使用後，濾網與風鼓累積大量灰塵與霉菌，出風口有明顯黑垢與異味。本次針對室內機做全拆清洗，包含濾網、風鼓、排水盤與外壳，高壓沖洗後恢復冷房效率並減少異味。',
+      'ac-heavy': '客戶長期未保養冷氣，鰭片與風鼓附著厚重灰塵，冷房效果明顯變差且用電量偏高。本次拆機深度清洗，先以環保藥劑浸泡溶解油污，再搭配高壓沖洗與排水管疏通，明顯改善冷房效率與風量。',
+      'washer-basic': '直立式洗衣機長期使用後，內槽與外槽間累積大量污泥、棉絮與黑色黴斑，洗完衣物容易殘留異味。本次拆蓋分解內桶，徹底刷洗內外槽、脫水槽與排水孔，搭配高壓沖洗與殺菌處理，恢復洗衣槽乾淨。',
+      'washer-odor': '客戶反映洗衣機排水口長期有異味，排水管與底部堆積髒污與洗劑結塊。本次拆除排水相關零件，清除堵塞物並刷洗排水管路與濾網，再以清水沖洗測試排水順暢，異味明顯改善。',
+      'tank-basic': '頂樓水塔多年未清洗，底部沉積泥沙與鐵鏽，內壁附著水垢，影響用水品質。本次先將水塔內水位放空後，人工刷洗內壁與底部沉積物，再以高壓清水多次沖洗，最後進行簡易消毒，確保出水清澈。'
+    };
+    function initDescTemplateButtons(){
+      const textarea = document.getElementById('desc');
+      if (!textarea) return;
+      document.querySelectorAll('.btn-desc-template').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const key = btn.dataset.template;
+          const tpl = descTemplates[key];
+          if (!tpl) return;
+          const current = textarea.value.trim();
+          textarea.value = current ? (textarea.value.replace(/\s*$/, '') + '\n\n' + tpl) : tpl;
+          textarea.focus();
+        });
+      });
+    }
+ function isLoggedIn(){ return !!getToken(); }
 
     function refreshAdminUI(){
       const out = $('#admin-logged-out');
@@ -412,7 +461,8 @@
 
       const title=$('#title').value.trim();
       const date=$('#date').value;
-      const desc=$('#desc').value.trim();
+      const desc=$('#desc') ? $('#desc').value.trim() : '';
+      const hidden=$('#hidden') ? $('#hidden').checked : false;
       const tags=$('#tags').value.trim();
       let slug=$('#slug').value.trim();
       const rows=$$('#items>.row');
@@ -443,7 +493,7 @@
             // 🔐 帶上管理員 JWT（新增）
             'Authorization': 'Bearer ' + token
           },
-          body: JSON.stringify({ title, date, desc, tags, slug, items })
+          body: JSON.stringify({ title, date, desc, tags, slug, items, visible: !hidden })
         });
         const txt = await resp.text();
         let data; try{ data = JSON.parse(txt); }catch{ data = { error: txt }; }
@@ -464,7 +514,8 @@
         setProgress(''); setBar(0);
         alert('建立失敗：' + (e.message || e));
       }
-    });
+        initDescTemplateButtons();
+  });
 
     /* ===== Viewer + Lightbox ===== */
     let lbIndex = 0, lbItems = [];

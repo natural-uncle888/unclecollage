@@ -126,7 +126,7 @@ export default async (request) => {
     return sendJSON({ error: 'Invalid JSON body' }, 400);
   }
 
-  const { title, date, desc, tags, slug, items } = body || {};
+  const { title, date, desc, tags, slug, items, visible } = body || {};
 
   // 基本驗證
   if (!slug || !String(slug).trim()) {
@@ -149,7 +149,7 @@ export default async (request) => {
     items, // [{ url, caption }, ...]
     created_at: new Date().toISOString(),
     preview: previewUrl,
-    visible: true, // 新作品預設上架中
+    visible: typeof visible === 'boolean' ? visible : true, // 預設上架，除非前端指定隱藏
   };
 
   try {

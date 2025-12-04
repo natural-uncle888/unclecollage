@@ -185,13 +185,12 @@
        這裡保留 padding:12px，不影響這次日期顯示的回復邏輯 */
     .card{
       background:var(--card);
-      border:1px solid rgba(148,163,184,.3);
+      border:1px solid var(--border);
       border-radius:var(--radius);
-      padding:14px 14px 12px;
+      padding:12px;
       display:flex;
       flex-direction:column;
       min-height:220px;
-      box-shadow:0 10px 30px rgba(15,23,42,.08);
     }
 
     /* 預覽縮圖 */
@@ -880,7 +879,7 @@
     document.getElementById('showHiddenToggle')
       .addEventListener('change', ()=>{ load(); });
 
-    // 常用分類快捷鍵：點一下就帶入搜尋並套用篩選
+    // 常用分類快捷鍵
     document.querySelectorAll('.quick-filter').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         const tag = btn.dataset.tag || btn.textContent.trim();
