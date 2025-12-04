@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <meta name="theme-color" content="#0f172a"/>
-<title>清洗前後拼貼照片分享</title>
+<title>清洗前後照片拼貼製作｜自然大叔</title>
 <link rel="icon" type="image/png" href="logo.png"/>
 <meta name="description" content="上傳清洗前後拼貼照片，加入說明、拖曳排序，並一鍵產生分享連結與 ZIP 下載。">
 <!-- ✅ 新增 favicon -->
@@ -150,7 +150,6 @@
         <button type="button" class="btn-desc-template" data-template="washer-basic">直立式洗衣機清洗（住家）</button>
         <button type="button" class="btn-desc-template" data-template="tank-basic">水塔清洗</button>
         <button type="button" class="btn-desc-template" data-template="ac-heavy">冷氣清洗（多年未保養）</button>
-        <button type="button" class="btn-desc-template" data-template="washer-odor">直立式洗衣機清洗（排水異味）</button>
       </div>
     </div>
 
@@ -283,11 +282,10 @@
    
     // 案件說明常用範例快速插入
     const descTemplates = {
-      'ac-basic': '住家分離式冷氣長期使用後，濾網與風鼓累積大量灰塵與霉菌，出風口有明顯黑垢與異味。本次針對室內機做全拆清洗，包含濾網、風鼓、排水盤與外壳，高壓沖洗後恢復冷房效率並減少異味。',
-      'ac-heavy': '客戶長期未保養冷氣，鰭片與風鼓附著厚重灰塵，冷房效果明顯變差且用電量偏高。本次拆機深度清洗，先以環保藥劑浸泡溶解油污，再搭配高壓沖洗與排水管疏通，明顯改善冷房效率與風量。',
-      'washer-basic': '直立式洗衣機長期使用後，內槽與外槽間累積大量污泥、棉絮與黑色黴斑，洗完衣物容易殘留異味。本次拆蓋分解內桶，徹底刷洗內外槽、脫水槽與排水孔，搭配高壓沖洗與殺菌處理，恢復洗衣槽乾淨。',
-      'washer-odor': '客戶反映洗衣機排水口長期有異味，排水管與底部堆積髒污與洗劑結塊。本次拆除排水相關零件，清除堵塞物並刷洗排水管路與濾網，再以清水沖洗測試排水順暢，異味明顯改善。',
-      'tank-basic': '頂樓水塔多年未清洗，底部沉積泥沙與鐵鏽，內壁附著水垢，影響用水品質。本次先將水塔內水位放空後，人工刷洗內壁與底部沉積物，再以高壓清水多次沖洗，最後進行簡易消毒，確保出水清澈。'
+      'ac-basic': '住家分離式冷氣長期使用後，濾網與風鼓累積大量灰塵與霉菌，出風口有明顯黑垢與異味。本次針對室內機做清洗保養，包含濾網、風鼓、排水盤與外殼，高壓沖洗後恢復冷房效率並減少異味。',
+      'ac-heavy': '客戶長期未保養冷氣，鰭片與風鼓附著厚重灰塵，冷房效果明顯變差且用電量偏高。本次室內機清洗保養，先以環保藥劑溶解油污，再搭配高壓沖洗與排水管疏通，明顯改善冷房效率與風量。',
+      'washer-basic': '直立式洗衣機長期使用後，內槽與外槽間累積大量污泥、棉絮與黑色黴斑，洗完衣物容易殘留異味。本次分解內桶，徹底清洗內外槽、脫水槽與排水孔，搭配高壓沖洗處理，恢復洗衣槽乾淨。',
+      'tank-basic': '頂樓水塔多年未清洗，底部沉積泥沙與鐵鏽，內壁附著水垢，影響用水品質。本次先將水塔內水位放水，人工刷洗內壁與底部沉積物，最後再以清水多次沖洗，最後確保出水清澈。'
     };
     function initDescTemplateButtons(){
       const textarea = document.getElementById('desc');

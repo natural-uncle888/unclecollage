@@ -173,7 +173,7 @@ function initLightbox(images){
 // Render
 function render(slug, data){
   // meta
-  document.title = (data.title ? data.title + '｜' : '') + '作品詳情';
+  document.title = (data.title ? data.title + '｜' : '') + '自然大叔 清洗照片';
   if (qsel('title')) setText('title', data.title || slug);
   if (qsel('slug')) setText('slug', ' / ' + slug);
   const d = new Date(data.date || data.created_at || Date.now());
