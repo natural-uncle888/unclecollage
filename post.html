@@ -32,6 +32,7 @@
     .btn { padding:10px 14px; border-radius:10px; background:var(--brand); color:#fff; font-weight:700; border:0 }
     .ghost { padding:10px 14px; border-radius:10px; border:1px solid #ddd; background:#fff }
     .desc { margin-top:14px; line-height:1.7; color:#333 }
+    .desc-label{ font-weight:700; margin-bottom:6px; color:#111827; font-size:15px; }
     .grid { display:grid; grid-template-columns: repeat(12, 1fr); gap:20px; margin-top:24px }
     .card { grid-column: span 12; border:1px solid rgba(148,163,184,.35); border-radius: var(--radius); overflow:hidden; background:#fff; box-shadow:0 16px 40px rgba(15,23,42,.12); }
     .cap { padding:10px 12px; font-size:14px; color:#444; border-top:1px solid #f0f0f0 }
@@ -107,9 +108,12 @@ time[datetime].work-date{display:none !important;}
 </header>
 <main class="container" id="main">
 <h1 class="title" id="title">載入中…</h1>
-<div class="meta"><span id="date"></span><span class="muted" id="slug"></span></div>
+<div class="meta"><span id="date"></span></div>
 <div class="tags" id="tags"></div>
-<div class="desc" id="desc"></div>
+<div class="desc" id="desc-wrap">
+  <div class="desc-label">案件說明</div>
+  <div id="desc"></div>
+</div>
 <div class="actions">
 <a class="ghost" href="#" id="zip">下載 ZIP</a>
 <a class="ghost" href="#" id="share" rel="noopener" target="_blank">連結分享</a>
@@ -175,19 +179,19 @@ function render(slug, data){
   // meta
   document.title = (data.title ? data.title + '｜' : '') + '自然大叔 清洗照片';
   if (qsel('title')) setText('title', data.title || slug);
-  if (qsel('slug')) setText('slug', ' / ' + slug);
   const d = new Date(data.date || data.created_at || Date.now());
   if (qsel('date')) setText('date', d.toLocaleDateString('zh-TW'));
 
   // description
-  const descEl = qsel('desc');
-  if (descEl){
+  const descWrap = document.getElementById('desc-wrap');
+  const descEl = document.getElementById('desc');
+  if (descEl && descWrap){
     const text = (data.desc || '').toString().trim();
     if (text){
       descEl.textContent = text;
-      descEl.style.display = '';
+      descWrap.style.display = '';
     } else {
-      descEl.style.display = 'none';
+      descWrap.style.display = 'none';
     }
   }
 
