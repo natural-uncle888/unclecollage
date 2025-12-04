@@ -908,7 +908,7 @@
         const delBtn = document.createElement('button');
         delBtn.className = 'danger';
         delBtn.textContent = '刪除';
-        delBtn.addEventListener('click', ()=>{ deletePost(slug); });
+        delBtn.addEventListener('click', ()=>{ deletePost(slug, it.title || slug); });
         ctrl.appendChild(delBtn);
 
         card.appendChild(ctrl);
